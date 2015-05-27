@@ -1332,3 +1332,60 @@ plot.discSurvAdjDevResid <- function (x, ...) {
   qqnorm (y=x$Output$AdjDevResid, las=1, ...)
   qqline(y=x$Output$AdjDevResid, ...)
 }
+
+########################
+# adjDevResidShort
+
+# Description
+# Calculates the adjusted deviance residuals for arbitrary hazard prediction models. Should be normal distributed, in the case of a well fitting model
+
+adjDevResidShort <- function (dataSet, hazards) {
+  # Input checks
+  if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
+  if(!all(hazards>=0 & hazards<=1)) {stop("Argument *hazards* must contain probabilities in the closed interval from zero to one. Please verify that *hazards* are estimated hazard rates")}
+  if(!(dim(dataSet)[1]==length(hazards))) {stop("The length of argument *hazards* must match the number of observations")}
+  
+  # Help function
+  AdjDevResid <- function (x) { 
+    LogTerm1 <- ifelse(splitY [[x]]==1, -log(splitHazards [[x]]), 0)
+    LogTerm2 <- ifelse(splitY [[x]]==0, -log (1 - splitHazards [[x]]), 0)
+    FirstPartialSum <- sum(sign(splitY [[x]] - splitHazards [[x]]) * (sqrt(splitY [[x]] * LogTerm1 + (1 - splitY [[x]]) * LogTerm2)))
+    SecondPartialSum <- sum( (1 - 2*splitHazards [[x]]) / sqrt (splitHazards [[x]] * (1 - splitHazards [[x]]) * 36) )
+    return(FirstPartialSum + SecondPartialSum)
+  }
+
+  # Calculate residuals
+  splitHazards <- split(hazards, dataSet$obj)
+  splitY <- split(dataSet$y, dataSet$obj)
+  Residuals <- sapply(1:length(splitY), AdjDevResid)
+  Output <- list(Output=list(AdjDevResid=Residuals), 
+                 Input=list(dataSet=dataSet, hazards=hazards))
+  class(Output) <- "discSurvAdjDevResid"
+  return(Output)
+}
+
+########################
+# devResidShort
+
+# Description
+# Computes the root of the squared deviance residual
+
+devResidShort <- function (dataSet, hazards) {
+  
+  # Input checks
+  if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
+  if(!all(hazards>=0 & hazards<=1)) {stop("Argument *hazards* must contain probabilities in the closed interval from zero to one. Please verify that *hazards* are estimated hazard rates")}
+  if(!(dim(dataSet)[1]==length(hazards))) {stop("The length of argument *hazards* must match the number of observations")}
+  
+  # Help function
+  SquDevResid <- function (x) {-2*sum(splitY [[x]] * log(splitHazards [[x]]) + (1 - splitY [[x]]) * log(1 - splitHazards [[x]] ))}
+
+  # Calculate residuals
+  splitHazards <- split(hazards, dataSet$obj)
+  splitY <- split(dataSet$y, dataSet$obj)
+  Residuals <- sapply(1:length(splitY), SquDevResid)
+  Output <- list(Output=list(DevResid=sqrt(Residuals)), 
+                 Input=list(dataSet=dataSet, hazards=hazards))
+  class(Output) <- "discSurvDevResid"
+  return(Output)
+}

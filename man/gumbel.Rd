@@ -40,14 +40,10 @@ data(cost)
 head(cost)
 
 # Take subsample and convert time to months
-costSub <- cost [1:100, ]
+costSub <- cost [1:50, ]
 costSub$time <- ceiling(costSub$time/30)
-str(costSub)
 costLong <- dataLong(dataSet=costSub, timeColumn="time", censColumn="status")
-head(costLong)
-str(costLong)
 gumbelModel <- glm(formula=y ~ timeInt + diabetes, data=costLong, family=binomial(link=gumbel()))
-summary(gumbelModel)
 
 # Estimate hazard given prevStroke nad no prevStroke
 hazPrevStroke <- predict(gumbelModel, newdata=data.frame(timeInt=factor(1:143), 

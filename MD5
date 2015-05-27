@@ -1,11 +1,12 @@
-97ce7cdf981c8381ac479a292c911a38 *DESCRIPTION
+b1a995ccb7ae81c0d9acff81cdb8c9f4 *DESCRIPTION
 57cef99244622085060e3f7f77f4fa0d *NAMESPACE
 9ba25fe1c54773ebc7e9fff6782153ce *R/DiscSurvDataTransform.R
 9671213cc39be50750309374edc24320 *R/DiscSurvEstimation.R
-a3a8e1eec76849be84da59c960c75fda *R/DiscSurvEvaluation.R
+332fe3a6d04da5d3bdcc5397082862f5 *R/DiscSurvEvaluation.R
 3c5ba26df77f268486c1097eeb9f669e *R/DiscSurvLifeTable.R
 666b68f60bae23ca92846766670925a0 *R/DiscSurvSimulation.R
 ed60f2795d56ed60c5f0e27d18e90445 *man/adjDevResid.Rd
+c1c31a0511234bee30667e3b508516eb *man/adjDevResidShort.Rd
 51925112fdb02d29801ee9c78f0758cd *man/aucUno.Rd
 f6fe3e1d8208fe96f3dba7c91a7dee9f *man/brierScore.Rd
 07ed262f7c70b156b6e1c755507e349d *man/concorIndex.Rd
@@ -15,12 +16,13 @@ d80231bb0e3a80a42639eabc364f6360 *man/dataCensoring.Rd
 09cdb721da526b2faadeb1a8e7c83543 *man/dataLongCompRisks.Rd
 0201dbbcc3ccf8673573d39d17b89047 *man/dataLongTimeDep.Rd
 e2e8c1f1933cce4014cad68066333546 *man/devResid.Rd
+76285a732e902ae2ec7d83137222f7e1 *man/devResidShort.Rd
 76c643e1ec31daa80518375b7533f632 *man/discSurv-package.Rd
 a05154d213f7bb25fb0a6af38f939462 *man/estMargProb.Rd
 9a644a7855afcac5a8f87a7541ec88bf *man/estSurv.Rd
 18e36cce4fcbe4bf44edcea76f9b9506 *man/fprUno.Rd
 deb3aa0fa488c5034c37eb605d25bd3d *man/fprUnoShort.Rd
-5800b2a72d4ebf1a8c8943beec606fbe *man/gumbel.Rd
+8f8254af87bfdebdcb11c36230418bcd *man/gumbel.Rd
 e8afebedad1eb1d93b4a9f24bed6ee85 *man/intPredErrDisc.Rd
 1b7b553961f52be58bba54b615b74dbb *man/lifeTable.Rd
 9b5808dc03ea884bdc891ce986ba6e9f *man/martingaleResid.Rd
@@ -48,6 +50,7 @@ a8f3f5bfcf7a4fd9d0b188621b3981b1 *man/summary.discSurvPredErrDisc.Rd
 6398e81b18849ee058fe6599b6e7e84d *man/tprUnoShort.Rd
 c4f5c6938310edb11521798b79491e42 *tests/UnitTestsDiscSurvDataTransform.R
 e28b8cf1fa272f5c4362239195bcdc0e *tests/UnitTestsDiscSurvEstimation.R
+33e3fa698682e1843ed28776375f1674 *tests/UnitTestsDiscSurvEvalShort.R
 b5e2822dec7abba2729d6207aded2e16 *tests/UnitTestsDiscSurvEvaluation.R
 54695b92eb04ad424dea5049c4439e73 *tests/UnitTestsDiscSurvLifeTable.R
 d2a84668510a3ef7bdbbb85fe7dda8b9 *tests/UnitTestsDiscSurvSimulation.R
