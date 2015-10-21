@@ -1,5 +1,5 @@
-b1a995ccb7ae81c0d9acff81cdb8c9f4 *DESCRIPTION
-57cef99244622085060e3f7f77f4fa0d *NAMESPACE
+7a6afeea140da52c41a29381a039d694 *DESCRIPTION
+a19cb4c5f483b70f39eabfeab3455ea9 *NAMESPACE
 9ba25fe1c54773ebc7e9fff6782153ce *R/DiscSurvDataTransform.R
 9671213cc39be50750309374edc24320 *R/DiscSurvEstimation.R
 332fe3a6d04da5d3bdcc5397082862f5 *R/DiscSurvEvaluation.R
@@ -13,11 +13,11 @@ f6fe3e1d8208fe96f3dba7c91a7dee9f *man/brierScore.Rd
 6a7de589ecc6b1577643a6c5a66507e8 *man/contToDisc.Rd
 d80231bb0e3a80a42639eabc364f6360 *man/dataCensoring.Rd
 3439966838dcc3b2902a32fe59ce6429 *man/dataLong.Rd
-09cdb721da526b2faadeb1a8e7c83543 *man/dataLongCompRisks.Rd
+e60f6a74d953865e33d6ba97580b2477 *man/dataLongCompRisks.Rd
 0201dbbcc3ccf8673573d39d17b89047 *man/dataLongTimeDep.Rd
 e2e8c1f1933cce4014cad68066333546 *man/devResid.Rd
 76285a732e902ae2ec7d83137222f7e1 *man/devResidShort.Rd
-76c643e1ec31daa80518375b7533f632 *man/discSurv-package.Rd
+a1887de5a08f5d8aaf9ca3a555003063 *man/discSurv-package.Rd
 a05154d213f7bb25fb0a6af38f939462 *man/estMargProb.Rd
 9a644a7855afcac5a8f87a7541ec88bf *man/estSurv.Rd
 18e36cce4fcbe4bf44edcea76f9b9506 *man/fprUno.Rd

@@ -1,4 +1,8 @@
 exportPattern("^[[:alpha:]]+")
+importFrom("graphics", "abline", "lines", "plot")
+importFrom("stats", "aggregate", "as.formula", "binomial", "glm",
+           "glm.control", "loess", "model.matrix", "na.omit", "pnorm",
+           "predict", "qqline", "qqnorm", "terms")
 import(caret)
 import(mgcv)
 import(Matrix)

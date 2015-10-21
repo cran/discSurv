@@ -6,14 +6,22 @@
 Discrete Survival Analysis
 }
 \description{
-Includes functions for data transformations, estimation, evaluation and simulation of discrete survival analysis. Also discrete life table estimates are available. 
+Includes functions for data transformations, estimation, evaluation and simulation of discrete survival analysis. Also discrete life table estimates are available. The most important functions are listed below:
+\itemize{
+\item{\code{\link{contToDisc}}: }{Discretizes continuous time variable into a specified grid of censored data for discrete survival analysis.}
+\item{\code{\link{dataLong}}: }{Transform data from short format into long format for discrete survival analysis and right censoring.}
+\item{\code{\link{dataLongCompRisks}}: }{Transforms short data format to long format for discrete survival modelling in the case of competing risks with right censoring.}
+\item{\code{\link{dataLongTimeDep}}: }{Transforms short data format to long format for discrete survival modelling of single event analysis with right censoring.}
+\item{\code{\link{concorIndex}}: }{Calculates the concordance index for discrete survival models (independent measure of time).}
+\item{\code{\link{simCompRisk}}: }{Simulates responses and covariates of discrete competing risk models.}
+}
 }
 \details{
 \tabular{ll}{
-Package: \tab discSurv\cr
-Type: \tab Package\cr
-Version: \tab 1.0.0\cr
-Date: \tab 2015-04-22 \cr
+Package: \tab discSurv \cr
+Type: \tab Package \cr
+Version: \tab 1.1.1 \cr
+Date: \tab 2015-10-21 \cr
 License: \tab GPL-3 \cr
 }
 %%~~ An overview of how to use the package, including the most important functions ~~
