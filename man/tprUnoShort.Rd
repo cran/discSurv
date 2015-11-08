@@ -75,7 +75,7 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{tprUno}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link{createFolds}}, \code{\link{glm}}
+\code{\link{tprUno}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createFolds}}, \code{\link{glm}}
 }
 \examples{
 ##################################################
