@@ -8,7 +8,7 @@ Data Long Competing Risks Transformation
 Transforms short data format to long format for discrete survival modelling in the case of competing risks with right censoring. It is assumed that the covariates are not time varying. 
 }
 \usage{
-dataLongCompRisks(dataSet, timeColumn, eventColumns)
+dataLongCompRisks(dataSet, timeColumn, eventColumns, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,9 @@ Character giving the column name of the observed times. It is required that the 
 }
   \item{eventColumns}{
 Character vector giving the column names of the event indicators. It is required that all events are binary and the sum of all event indicators at a given time point, equals one.
+}
+  \item{timeAsFactor}{
+Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
 }
 \details{

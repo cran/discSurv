@@ -20,8 +20,8 @@ Includes functions for data transformations, estimation, evaluation and simulati
 \tabular{ll}{
 Package: \tab discSurv \cr
 Type: \tab Package \cr
-Version: \tab 1.1.2 \cr
-Date: \tab 2015-11-07 \cr
+Version: \tab 1.1.3 \cr
+Date: \tab 2016-04-18 \cr
 License: \tab GPL-3 \cr
 }
 %%~~ An overview of how to use the package, including the most important functions ~~

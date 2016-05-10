@@ -1,7 +1,7 @@
 Package: discSurv
-Version: 1.1.2
+Version: 1.1.3
 Title: Discrete Time Survival Analysis
-Date: 2015-11-07
+Date: 2016-04-18
 Author: Thomas Welchowski <welchow@imbie.meb.uni-bonn.de> and Matthias Schmid <matthias.schmid@imbie.uni-bonn.de>
 Maintainer: Thomas Welchowski <welchow@imbie.meb.uni-bonn.de>
 Description: Provides data transformations, estimation utilities,
@@ -13,6 +13,6 @@ Suggests: Matrix, matrixcalc, numDeriv, caret, Ecdat, pec, survival,
 License: GPL-3
 LazyLoad: yes
 NeedsCompilation: no
-Packaged: 2015-11-07 22:56:52 UTC; Thomas
+Packaged: 2016-05-09 16:03:31 UTC; Welchowski
 Repository: CRAN
-Date/Publication: 2015-11-08 09:30:20
+Date/Publication: 2016-05-10 10:30:34

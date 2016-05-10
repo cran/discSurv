@@ -9,7 +9,7 @@ Estimates the predictive false positive rate (fpr) based on cross validation and
 }
 \usage{
 fprUno(timepoint, dataSet, trainIndices, survModelFormula, 
-censModelFormula, linkFunc = "logit", idColumn = NULL)
+censModelFormula, linkFunc = "logit", idColumn = NULL, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -33,6 +33,9 @@ Link function of the generalized, linear model.
 }
   \item{idColumn}{
 Name of the column with identification numbers of persons. Default NULL means, that each row equals one person (no repeated measurements).
+}
+  \item{timeAsFactor}{
+Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
 }
 %%\details{
@@ -102,7 +105,7 @@ CVfolds <- createFolds (y=UnempDurSubset$spell, returnTrain=TRUE, k=2)
 # Estimate false positive rate of time interval 7:
 tryFPR <- fprUno (timepoint=7, dataSet=UnempDurSubset, trainIndices=CVfolds,  
 survModelFormula=spell ~ age + logwage, censModelFormula=censor1 ~ 1, 
-linkFunc="logit", idColumn=NULL)
+linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryFPR
 plot(tryFPR)
 }

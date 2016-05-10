@@ -80,7 +80,7 @@ contToDisc <- function(dataSet, timeColumn, intervalLimits, equi=FALSE) {
 # timeInt: Index of time intervals as integer vector
 # y: Response in long format as binary vector. 1=="event happens in period timeInt" and 0 otherwise
 
-dataLong <- function (dataSet, timeColumn, censColumn) {
+dataLong <- function (dataSet, timeColumn, censColumn, timeAsFactor=TRUE) {
 
   # Input checks
   if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
@@ -123,7 +123,12 @@ dataLong <- function (dataSet, timeColumn, censColumn) {
   dataSetLong <- dataSet[obj,]
   
   # Calculate discrete time interval
-  timeInt <- factor(unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1])))
+  if(timeAsFactor) {
+    timeInt <- factor(unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1])))
+  }
+  else{
+    timeInt <- unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1]))
+  }
   
   # Calculate response
   y <- c(unlist(apply(dataSet, 1, FUN = function(k) c(rep(0, as.numeric(k[c1])-1), as.numeric(k[c2])) )))
@@ -157,7 +162,7 @@ dataLong <- function (dataSet, timeColumn, censColumn) {
 # y: Response in long format as binary vector. 1=="event happens in period timeInt" and 0 otherwise
 
 
-dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn) {
+dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn, timeAsFactor=TRUE) {
 
   # Input checks
   if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
@@ -191,6 +196,9 @@ dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn) {
   ###############
   # Main code
 
+  # Rearrange original data, that ID is in increasing order
+  dataSet <- dataSet[order(dataSet [, idColumn]), ]
+  
   # Split data by persons
   splitDataSet <- split(x=dataSet, f=dataSet [, idColumn])
   lengthSplitDataSet <- 1:length(splitDataSet)
@@ -212,7 +220,12 @@ dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn) {
   
   # Create time interval variable in long format for each split and combine results
   dataListTimeInt <- lapply(lengthSplitDataSet, function (x) 1:SumCounts [x])
-  dataListTimeInt <- do.call(c, dataListTimeInt)
+  if(timeAsFactor) {
+    dataListTimeInt <- factor(do.call(c, dataListTimeInt))
+  }
+  else{
+    dataListTimeInt <- do.call(c, dataListTimeInt)
+  }
   
   # Create time response variable in long format for each split and combine results
   dataListResponse <- lapply(lengthSplitDataSet, function (x) c(rep(0, SumCounts [x]-1), as.numeric(as.character(tail(splitDataSet [[x]] [, censColumn], 1)))))
@@ -253,7 +266,7 @@ dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn) {
 # ek: Indicator of last event, 1 if event takes place and 0 otherwise
 # dataSet: Original data with replicated rows
 
-dataLongCompRisks <- function (dataSet, timeColumn, eventColumns) {
+dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=TRUE) {
 
   # Input checks
   if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
@@ -295,7 +308,7 @@ dataLongCompRisks <- function (dataSet, timeColumn, eventColumns) {
   obj <- rep(1:nrow(dataSet), dataSet_timeColumn)
   dataSetLong <- dataSet[obj,]
   timeInt <- unlist(apply(dataSet, 1, FUN = function(k) 1:k[indextimeColumn]))
-  timeInt <- factor(timeInt)
+  if(timeAsFactor){timeInt <- factor(timeInt)}
   
   # Construct censoring variable in short format
   dataSet_eventColumns <- dataSet [, indizeseventColumns]

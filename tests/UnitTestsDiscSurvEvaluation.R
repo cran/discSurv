@@ -27,12 +27,12 @@ summary(cost$time)
 
 # Estimate true positive rate of time interval 1: 
 # Correspondes to two month duration (each interval is of length two weeks)
-tryTPR <- tprUno (timepoint=1, dataSet=cost, trainIndices=list(1:dim(cost)[1]), survModelFormula=time ~ prevStroke + cholest, censModelFormula=status ~ 1, linkFunc="logit", idColumn=NULL)
+tryTPR <- tprUno (timepoint=1, dataSet=cost, trainIndices=list(1:dim(cost)[1]), survModelFormula=time ~ prevStroke + cholest, censModelFormula=status ~ 1, linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryTPR
 plot(tryTPR)
 
 # Estimate false positive rate of time interval 1:
-tryFPR <- fprUno (timepoint=1, dataSet=cost, trainIndices=list(1:dim(cost)[1]),  survModelFormula=time ~ prevStroke + cholest, censModelFormula=status ~ 1, linkFunc="logit", idColumn=NULL)
+tryFPR <- fprUno (timepoint=1, dataSet=cost, trainIndices=list(1:dim(cost)[1]),  survModelFormula=time ~ prevStroke + cholest, censModelFormula=status ~ 1, linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryFPR
 plot(tryFPR)
 
@@ -70,7 +70,8 @@ tryTPRshort
 plot(tryTPRshort)
 
 # Estimate false positive rate of time interval 1:
-tryFPRshort <- fprUnoShort (timepoint=1, marker=gamMarker, newTime=costTest$time)
+tryFPRshort <- fprUnoShort (timepoint=1, marker=gamMarker, newTime=costTest$time, 
+                            newEvent=costTest$status)
 tryFPRshort
 plot(tryFPRshort)
 

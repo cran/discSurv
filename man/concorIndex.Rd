@@ -82,14 +82,14 @@ CVfolds <- createFolds (y=UnempDurSubset$spell, returnTrain=TRUE, k=2)
 # Correspondes to three and a half month duration (each interval is of length two weeks)
 tryTPR <- tprUno (timepoint=7, dataSet=UnempDurSubset, trainIndices=CVfolds, 
 survModelFormula=spell ~ age + logwage, censModelFormula=censor1 ~ 1, 
-linkFunc="logit", idColumn=NULL)
+linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryTPR
 plot(tryTPR)
 
 # Estimate false positive rate of time interval 7:
 tryFPR <- fprUno (timepoint=7, dataSet=UnempDurSubset, trainIndices=CVfolds,  
 survModelFormula=spell ~ age + logwage, censModelFormula=censor1 ~ 1, 
-linkFunc="logit", idColumn=NULL)
+linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryFPR
 plot(tryFPR)
 

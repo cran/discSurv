@@ -9,7 +9,7 @@ Estimates the true positive rate based on Uno et al. to evaluate the predictive 
 }
 \usage{
 tprUno(timepoint, dataSet, trainIndices, survModelFormula, 
-censModelFormula, linkFunc = "logit", idColumn = NULL)
+censModelFormula, linkFunc = "logit", idColumn = NULL, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -34,10 +34,15 @@ Link function of the generalized, linear model.
   \item{idColumn}{
 Name of the column with identification numbers of persons. Default NULL means, that each row equals one person (no repeated measurements).
 }
+  \item{timeAsFactor}{
+Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
-%%\details{
-%%  ~~ If necessary, more details than the description above ~~
-%%}
+}
+\details{
+  The formula \code{survModelFormula} must be in a specific structure: The response on the left side of the formula is the time of the short data format. On the right side are the covariates without time, e. g. Time ~ X1 + X2 if there are only two covariates. The time will be added automatically.
+  
+  The next formula \code{survModelFormula} has similiar structure. The difference is the left side of the formula: This must be the 
+}
 \value{
 List with objects
 \itemize{

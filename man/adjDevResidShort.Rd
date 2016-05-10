@@ -63,7 +63,7 @@ Indizes <- sample(unique(heart$id), 25)
 randSample <- heart[unlist(sapply(1:length(Indizes), 
 function(x) which(heart$id==Indizes[x]))),]
 heartLong <- dataLongTimeDep(dataSet=randSample, 
-timeColumn="stop", censColumn="event", idColumn="id")
+timeColumn="stop", censColumn="event", idColumn="id", timeAsFactor=FALSE)
 
 # Fit a generalized, additive model and predict hazard rates on data in long format
 library(mgcv)

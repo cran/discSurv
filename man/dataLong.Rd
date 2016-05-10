@@ -8,7 +8,7 @@ Data Long Transformation
 Transform data from short format into long format for discrete survival analysis and right censoring. Data is assumed to include no time varying covariates, e. g. no follow up visits are allowed. It is assumed that the covariates stay constant over time, in which no information is available.
 }
 \usage{
-dataLong(dataSet, timeColumn, censColumn)
+dataLong(dataSet, timeColumn, censColumn, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,9 @@ Character giving the column name of the observed times. It is required that the 
 }
   \item{censColumn}{
 Character giving the column name of the event indicator. It is required that this is a binary variable with 1=="event" and 0=="censored".
+}
+  \item{timeAsFactor}{
+Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
 }
 \details{

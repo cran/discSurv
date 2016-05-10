@@ -8,7 +8,7 @@ Data Long Time Dependent Covariates
 Transforms short data format to long format for discrete survival modelling of single event analysis with right censoring. Covariates may vary over time. 
 }
 \usage{
-dataLongTimeDep(dataSet, timeColumn, censColumn, idColumn)
+dataLongTimeDep(dataSet, timeColumn, censColumn, idColumn, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -23,6 +23,9 @@ Character giving the column name of the event indicator. It is required that thi
 }
   \item{idColumn}{
 Name of column of identification number of persons as character.
+}
+  \item{timeAsFactor}{
+Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
 }
 \details{

@@ -139,7 +139,7 @@ brierScore <- function (dataSet, trainIndices, survModelFormula, linkFunc="logit
 # cutoff: Cut off values of the linear predictor (numeric vector)
 # fpr: False positive rate (numeric vector)
 
-tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModelFormula, linkFunc="logit", idColumn=NULL) {
+tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModelFormula, linkFunc="logit", idColumn=NULL, timeAsFactor=TRUE) {
   
   # Input Checks
   if(length(timepoint)!=1 || !(timepoint==floor(timepoint))) {stop("Argument *timepoint* is not in the correct format! Please specify as integer scalar value.")}
@@ -177,10 +177,13 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   
   # Convert full sample to long format
   if(!is.null(idColumn)) {
-    TrainLongFull <- dataLongTimeDep (dataSet=dataSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2], idColumn=idColumn)
+    TrainLongFull <- dataLongTimeDep (dataSet=dataSet, timeColumn=as.character(survModelFormula) [2], 
+                                      censColumn=as.character(censModelFormula) [2], 
+                                      idColumn=idColumn, timeAsFactor=timeAsFactor)
   }
   else {
-    TrainLongFull <- dataLong (dataSet=dataSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2])
+    TrainLongFull <- dataLong (dataSet=dataSet, timeColumn=as.character(survModelFormula) [2], 
+                               censColumn=as.character(censModelFormula) [2], timeAsFactor=timeAsFactor)
   }
   
   for(i in 1:length(trainIndices)) {
@@ -196,10 +199,13 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
 
     # 1. Convert training data to long format
     if(!is.null(idColumn)) {
-      TrainLong <- dataLongTimeDep (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2], idColumn=idColumn)
+      TrainLong <- dataLongTimeDep (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], 
+                                    censColumn=as.character(censModelFormula) [2], idColumn=idColumn,
+                                    timeAsFactor=timeAsFactor)
     }
     else {
-      TrainLong <- dataLong (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2])
+      TrainLong <- dataLong (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], 
+                             censColumn=as.character(censModelFormula) [2], timeAsFactor=timeAsFactor)
     }
     
     # 2. Convert response in training data to censoring variable
@@ -207,10 +213,13 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     
     # 3. Convert test data to long format
     if(!is.null(idColumn)) {
-      TestLong <- dataLongTimeDep (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2], idColumn=idColumn)
+      TestLong <- dataLongTimeDep (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], 
+                                   censColumn=as.character(censModelFormula) [2], idColumn=idColumn,
+                                   timeAsFactor=timeAsFactor)
     }
     else {
-      TestLong <- dataLong (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2])
+      TestLong <- dataLong (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], 
+                            censColumn=as.character(censModelFormula) [2], timeAsFactor=timeAsFactor)
     }
 
     # 4. Fit censoring model on training data in long format
@@ -253,8 +262,14 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     # 7. Estimate marker values
     SurvnewFormula <- update(survModelFormula, y ~ timeInt + .)
     SurvFit <- glm (formula=SurvnewFormula, data=TrainLong, family=binomial(link=linkFunc), control=glm.control(maxit=2500))
-    TestSetExt <- cbind(TestSet, timeInt=factor(TestSet [, as.character(survModelFormula) [2] ]))
-    TrainSetExt <- cbind(TrainSet, timeInt=factor(TrainSet [, as.character(survModelFormula) [2] ]))
+    if(timeAsFactor) {
+      TestSetExt <- cbind(TestSet, timeInt=factor(TestSet [, as.character(survModelFormula) [2] ]))
+      TrainSetExt <- cbind(TrainSet, timeInt=factor(TrainSet [, as.character(survModelFormula) [2] ]))
+    }
+    else{
+      TestSetExt <- cbind(TestSet, timeInt=TestSet [, as.character(survModelFormula) [2] ])
+      TrainSetExt <- cbind(TrainSet, timeInt=TrainSet [, as.character(survModelFormula) [2] ])
+    }
     
     # Exclude cases with new factor levels in test data in short format
     Check <- "error" %in% class(tryCatch(predict(SurvFit, TestSetExt), error= function (e) e))
@@ -310,10 +325,18 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     newTime <- dataSet [, as.character(survModelFormula) [2]]
   }
   n <- length(newEvent)
-  GT <- sapply(1:n, function(u){
-    if (newTime[u] > 1)
-      return(G[[2]][u][[1]][newTime[u]-1]) else
-        return(1) } )
+  if(is.null(idColumn)) {
+    GT <- sapply(1:n, function(u){
+      if (newTime[u] > 1)
+        return(G[[2]] [u] [[1]] [newTime[u]-1]) else
+          return(1) } )
+  }
+  else{
+    GT <- sapply(1:n, function(u){
+      if (newTime[u] > 1)
+        return(G[[2]] [TrainLongFullExc [dataSet[u, idColumn], "obj"] ] [[1]] [newTime[u]-1]) else
+          return(1) } )
+  }
   # Merge markers
   marker <- do.call(c, markerList)
   RET <- sapply(marker, sens)
@@ -321,7 +344,9 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   rownames(tempDat) <- 1:dim(tempDat) [1]
   
   RET <- list(Output=tempDat, 
-              Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, survModelFormula=survModelFormula, censModelFormula=censModelFormula, linkFunc=linkFunc, idColumn=idColumn, Short=FALSE))
+              Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, 
+                         survModelFormula=survModelFormula, censModelFormula=censModelFormula, 
+                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, timeAsFactor=timeAsFactor))
   class(RET) <- "discSurvTprUno"
   return(RET)
 }
@@ -388,7 +413,6 @@ tprUnoShort <- function (timepoint, marker, newTime, newEvent, trainTime, trainE
   
   # Help function
   sens <- function(k) {
-    
     sensNum <- sum((marker > k) * (newTime == timepoint) * newEvent / GT, na.rm = TRUE)
     sensDenom <- sum((newTime == timepoint) * newEvent / GT, na.rm = TRUE)
     
@@ -430,7 +454,7 @@ tprUnoShort <- function (timepoint, marker, newTime, newEvent, trainTime, trainE
   # cutoff: Cut off values of the linear predictor (numeric vector)
   # fpr: False positive rate (numeric vector)
 
-fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModelFormula, linkFunc="logit", idColumn=NULL) {
+fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModelFormula, linkFunc="logit", idColumn=NULL, timeAsFactor=TRUE) {
   
   # Input Checks
   if(length(timepoint)!=1 || !(timepoint==floor(timepoint))) {stop("Argument *timepoint* is not in the correct format! Please specify as integer scalar value.")}
@@ -451,11 +475,25 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   if(!("formula" %in% class(survModelFormula))) {stop("*survModelFormula* is not of class formula! Please specify a valid formula, e. g. y ~ x")}
   if(!(any(names(dataSet)==idColumn) | is.null(idColumn))) {stop("Argument *idColumn* is not available in *dataSet*! Please specify the correct column name of the identification number.")}
   
+#   # Help function
+#   spec <- function(k){
+#     
+#     specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
+#     specDenom <- sum(newTime > timepoint, na.rm = TRUE)
+#     
+#     if (specDenom > 0)
+#       return(specNum / specDenom) else
+#         return(0)
+#   }
   # Help function
+  # Changed to avoid undefined specificity at the last time point.
+  # Persons in the test data are likewise controls, 
+  # if the new time point in the test data is equal to considered time point and 
+  # the observation is censored
   spec <- function(k){
     
-    specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
-    specDenom <- sum(newTime > timepoint, na.rm = TRUE)
+    specNum <- sum((marker <= k) * ((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
+    specDenom <- sum(((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
     
     if (specDenom > 0)
       return(specNum / specDenom) else
@@ -479,10 +517,13 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     
     # 1. Convert training data to long format
     if(!is.null(idColumn)) {
-      TrainLong <- dataLongTimeDep (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2], idColumn=idColumn)
+      TrainLong <- dataLongTimeDep (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], 
+                                    censColumn=as.character(censModelFormula) [2], idColumn=idColumn, 
+                                    timeAsFactor=timeAsFactor)
     }
     else {
-      TrainLong <- dataLong (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2])
+      TrainLong <- dataLong (dataSet=TrainSet, timeColumn=as.character(survModelFormula) [2], 
+                             censColumn=as.character(censModelFormula) [2], timeAsFactor=timeAsFactor)
     }
     
     # 2. Convert response in training data to censoring variable
@@ -490,18 +531,26 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     
     # 3. Convert test data to long format
     if(!is.null(idColumn)) {
-      TestLong <- dataLongTimeDep (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2], idColumn=idColumn)
+      TestLong <- dataLongTimeDep (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], 
+                                   censColumn=as.character(censModelFormula) [2], idColumn=idColumn, timeAsFactor=timeAsFactor)
     }
     else {
-      TestLong <- dataLong (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], censColumn=as.character(censModelFormula) [2])
+      TestLong <- dataLong (dataSet=TestSet, timeColumn=as.character(survModelFormula) [2], 
+                            censColumn=as.character(censModelFormula) [2], timeAsFactor=timeAsFactor)
     }
 
     # 7. Estimate marker values
     SurvnewFormula <- update(survModelFormula, y ~ timeInt + .)
     SurvFit <- glm (formula=SurvnewFormula, data=TrainLong, family=binomial(link=linkFunc), control=glm.control(maxit=2500))
-    TestSetExt <- cbind(TestSet, timeInt=factor(TestSet [, as.character(survModelFormula) [2] ]))
-    TrainSet <- cbind(TrainSet, timeInt=factor(TrainSet [, as.character(survModelFormula) [2] ]))
-    
+    if(timeAsFactor) {
+      TestSetExt <- cbind(TestSet, timeInt=factor(TestSet [, as.character(survModelFormula) [2] ]))
+      TrainSetExt <- cbind(TrainSet, timeInt=factor(TrainSet [, as.character(survModelFormula) [2] ]))
+    }
+    else{
+      TestSetExt <- cbind(TestSet, timeInt=TestSet [, as.character(survModelFormula) [2] ])
+      TrainSetExt <- cbind(TrainSet, timeInt=TrainSet [, as.character(survModelFormula) [2] ])
+    }
+
     Check <- "error" %in% class(tryCatch(predict(SurvFit, TestSetExt), error= function (e) e))
     if(Check) {
       # Which columns are factors in test data?
@@ -536,9 +585,11 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   marker <- do.call(c, markerList)
   ExcludeRowsDataSet <- do.call(c, ExcludeRowsDataSetList)
   if(!is.null(ExcludeRowsDataSet)) {
+    newEvent <- dataSet [-ExcludeRowsDataSet, as.character(censModelFormula) [2]]
     newTime <- dataSet [-ExcludeRowsDataSet, as.character(survModelFormula) [2]]
   }
   else {
+    newEvent <- dataSet [, as.character(censModelFormula) [2]]
     newTime <- dataSet [, as.character(survModelFormula) [2]]
   }
   RET <- sapply(marker, spec)
@@ -547,7 +598,9 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   tempDat <- data.frame(cutoff = sort(marker), fpr = 1-RET [order(marker)])
   rownames(tempDat) <- 1:dim(tempDat) [1]
   RET <- list(Output=tempDat, 
-              Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, survModelFormula=survModelFormula, censModelFormula=censModelFormula, linkFunc=linkFunc, idColumn=idColumn, Short=FALSE))
+              Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, 
+                         survModelFormula=survModelFormula, censModelFormula=censModelFormula, 
+                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, timeAsFactor=timeAsFactor))
   class(RET) <- "discSurvFprUno"
   return(RET)
 }
@@ -567,13 +620,22 @@ plot.discSurvFprUno <- function (x, ...) {
 # Description
 # Estimates the false positive rate given prior estimated marker values
 
-fprUnoShort <- function (timepoint, marker, newTime) {
+fprUnoShort <- function (timepoint, marker, newTime, newEvent) {
   
   # Help function
-  spec <- function(k) {
+#   spec <- function(k) {
+#     
+#     specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
+#     specDenom <- sum(newTime > timepoint, na.rm = TRUE)
+#     
+#     if (specDenom > 0)
+#       return(specNum / specDenom) else
+#         return(0)
+#   }
+  spec <- function(k){
     
-    specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
-    specDenom <- sum(newTime > timepoint, na.rm = TRUE)
+    specNum <- sum((marker <= k) * ((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
+    specDenom <- sum(((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
     
     if (specDenom > 0)
       return(specNum / specDenom) else
@@ -678,8 +740,9 @@ concorIndex <- function (aucObj) {
     MaxTime <- max(trainTime)
     AUCalltime <- vector("numeric", MaxTime)
     for(i in 1:MaxTime) {
-      tempTPR <- tprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent, trainTime=trainTime, trainEvent=trainEvent)
-      tempFPR <- fprUnoShort (timepoint=i, marker=marker, newTime=newTime)
+      tempTPR <- tprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent, 
+                              trainTime=trainTime, trainEvent=trainEvent)
+      tempFPR <- fprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent)
       AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
       cat("Timepoint =", i, "done", "\n")
     }
@@ -701,26 +764,34 @@ concorIndex <- function (aucObj) {
     CensModelFormula <- aucObj$Input$tprObj$Input$censModelFormula
     LinkFunc <- aucObj$Input$tprObj$Input$linkFunc
     IdColumn <- aucObj$Input$tprObj$Input$idColumn
+    timeAsFactor <- aucObj$Input$tprObj$Input$timeAsFactor
     AUCalltime <- vector("numeric", MaxTime)
     for(i in 1:MaxTime) {
-      tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn)
-      tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn)
+      tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
+      tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       AUCalltime [i] <- aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output
       cat("Timepoint =", i, "done", "\n")
     }
   
     # Estimate survival function and marginal probabilities without covariates
     if(!is.null(IdColumn)) {
-      TrainLongFull <- dataLongTimeDep (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], censColumn=as.character(CensModelFormula) [2], idColumn=IdColumn)
+      TrainLongFull <- dataLongTimeDep (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], 
+                                        censColumn=as.character(CensModelFormula) [2], idColumn=IdColumn, timeAsFactor=timeAsFactor)
     }
     else {
-      TrainLongFull <- dataLong (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], censColumn=as.character(CensModelFormula) [2])
+      TrainLongFull <- dataLong (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], 
+                                 censColumn=as.character(CensModelFormula) [2], timeAsFactor=timeAsFactor)
     }
     
     # Estimate marginal survival probability with glm
     MargFormula <- y ~ timeInt
     MargFit <- glm (formula=MargFormula, data=TrainLongFull, family=binomial(link=LinkFunc), control=glm.control(maxit=2500))
-    PredMargData <- data.frame(timeInt=factor(min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):max(TrainLongFull [, as.character(SurvModelFormula) [2] ])))
+    if(timeAsFactor) {
+      PredMargData <- data.frame(timeInt=factor(min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):max(TrainLongFull [, as.character(SurvModelFormula) [2] ])))
+    }
+    else{
+      PredMargData <- data.frame(timeInt=min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):max(TrainLongFull [, as.character(SurvModelFormula) [2] ]))
+    }
     MargHaz <- as.numeric(predict(MargFit, PredMargData, type="response"))
     # Survival function S(T=t) = P(T>t) = \prod_{j=1}^{t1} (1-\lambda (T=j))
     MargSurv <- estSurv(MargHaz)

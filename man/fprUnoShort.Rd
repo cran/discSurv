@@ -8,7 +8,7 @@ False Positive Rate for arbitrary predition models
 Estimates the false positive rate (based on concept of Uno, et al.) for an arbitrary discrete survival prediction model on one test data set. 
 }
 \usage{
-fprUnoShort(timepoint, marker, newTime)
+fprUnoShort(timepoint, marker, newTime, newEvent)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,9 @@ Gives the predicted values of the linear predictor of a regression model (numeri
 }
   \item{newTime}{
 New time intervals in the test data (integer vector).
+}
+  \item{newEvent}{
+New event indicators in the test data (integer binary vector).
 }
 }
 \details{
@@ -98,7 +101,8 @@ s(age) + s(logwage), data=UnempDurSubsetTrainLong, family=binomial())
 gamFitPreds <- predict(gamFit, newdata=cbind(UnempDurSubsetTest, timeInt=UnempDurSubsetTest$spell))
 
 # Estimate false positive rate
-fprGamFit <- fprUnoShort (timepoint=1, marker=gamFitPreds, newTime=UnempDurSubsetTest$spell)
+fprGamFit <- fprUnoShort (timepoint=1, marker=gamFitPreds, 
+newTime=UnempDurSubsetTest$spell, newEvent=UnempDurSubsetTest$censor1)
 plot(fprGamFit)
 
 #####################################
@@ -139,7 +143,7 @@ timeInt=nwtcoSubTempTest$timeDisc))
 
 # Estimate tpr given one training and one test sample at time interval 10
 fprFit <- fprUnoShort (timepoint=10, marker=linPreds, 
-newTime=nwtcoSubTempTest$timeDisc)
+newTime=nwtcoSubTempTest$timeDisc, newEvent=nwtcoSubTempTest$rel)
 plot(fprFit)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
