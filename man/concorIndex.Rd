@@ -8,13 +8,16 @@ Concordance Index
 Calculates the concordance index for discrete survival models (independent measure of time). This is the probability that, for a pair of randomly chosen comparable samples, the sample with the higher risk prediction will experience an event before the other sample or belongs to a higher binary class.
 }
 \usage{
-concorIndex(aucObj)
+concorIndex(aucObj, printTimePoints=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{aucObj}{
 Object of class "discSurvAucUno". This object is created using the function \code{\link{aucUno}}
 }
+  \item{printTimePoints}{
+    Should messages be printed for each calculation of a discrete time interval? (logical scalar) Default is FALSE.
+  }
 }
 \details{
 The algorithm extracts all necessary information of the auc object (e. g. marginal probabilities and survival functions). 

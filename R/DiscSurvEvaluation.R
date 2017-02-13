@@ -724,7 +724,7 @@ plot.discSurvAucUno <- function (x, ...) {
 # Output
 # Weighted integrated auc over time as measure of accuracy. The format is a double scalar value.
 
-concorIndex <- function (aucObj) {
+concorIndex <- function (aucObj, printTimePoints=FALSE) {
 
   # Input checks
   if(class(aucObj)!="discSurvAucUno") {stop("This object has not the appropriate class! Please specify an object of class *discSurvAucUno*.")}
@@ -744,7 +744,7 @@ concorIndex <- function (aucObj) {
                               trainTime=trainTime, trainEvent=trainEvent)
       tempFPR <- fprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent)
       AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
-      cat("Timepoint =", i, "done", "\n")
+      if(printTimePoints) {cat("Timepoint =", i, "done", "\n")}
     }
 
     # Estimate nonparametric survival function S(T=t) and marginal probabilities P(T=t)
@@ -770,7 +770,7 @@ concorIndex <- function (aucObj) {
       tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       AUCalltime [i] <- aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output
-      cat("Timepoint =", i, "done", "\n")
+      if(printTimePoints) {cat("Timepoint =", i, "done", "\n")}
     }
   
     # Estimate survival function and marginal probabilities without covariates

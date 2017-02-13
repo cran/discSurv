@@ -44,9 +44,10 @@ Gerhard Tutz, (2012), \emph{Regression for Categorical Data}, Cambridge Universi
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 }
-%%\note{
-%%  ~~further notes~~
-%%}
+
+\note{
+The argument \emph{dataSet} must have a response with column name "y". The correct format of the dataset can be augmented by using \code{\link{dataLong}}. 
+}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
