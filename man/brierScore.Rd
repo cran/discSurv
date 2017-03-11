@@ -46,9 +46,10 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 
 Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
-%%\note{
-%%  ~~further notes~~
-%%}
+
+\note{
+It is assumed that all time points up to the last interval [a_q, Inf) are available in short format. If not already present, these can be added manually.
+}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

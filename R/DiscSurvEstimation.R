@@ -38,11 +38,13 @@ gumbel <- function()
 estSurv <- function (haz) {
   
   # Input checks
-  if(!is.vector(haz)) {stop("Argument *haz* is not a vector! Please specify a numeric vector of estimated hazard rates.")}
-  if(!all(0<=haz & haz<=1)) {stop("Argument *haz* is not a vector! Please specify a numeric vector of estimated hazard rates.")}
+  if(!is.vector(haz)) {stop(
+    "Argument *haz* is not a vector! Please specify a numeric vector of estimated hazard rates.")}
+  if(!all(0<=haz & haz<=1)) {stop(
+    "Argument *haz* is not a vector of probabilities! Please specify a numeric vector of estimated hazard rates.")}
   
-  erg <- c(cumprod(1-haz), 0)
-  names(erg) <- c(paste("S(T=", 1:length(haz), ")", sep=""), paste("S(T=", length(haz)+1, ")", sep=""))
+  erg <- cumprod(1-haz)
+  names(erg) <- paste("S(T=", 1:length(haz), ")", sep="")
   return(erg)
 }
 
@@ -70,13 +72,13 @@ estMargProb <- function (haz) {
   
   if(length(haz)>1) {
     EstSurv <- estSurv(haz)
-    EstProb <- c(haz[1], sapply(2:length(haz), function (x) haz [x] * EstSurv [x-1]), EstSurv [length(haz)])
-    names(EstProb) <- c(paste("P(T=", 1:length(haz), ")", sep=""), paste("P(T=", length(haz)+1, ")", sep=""))
+    EstProb <- c(haz[1], sapply(2:length(haz), function (x) haz [x] * EstSurv [x-1]))
+    names(EstProb) <- paste("P(T=", 1:length(haz), ")", sep="")
   }
   else {
-    EstSurv <- estSurv(haz)
-    EstProb <- c(haz[1], EstSurv [length(haz)])
-    names(EstProb) <- c(paste("P(T=", 1:length(haz), ")", sep=""), paste("P(T=", length(haz)+1, ")", sep=""))
+    EstProb <- 1
+    names(EstProb) <- paste("P(T=", 1, ")", sep="")
   }
+
   return(EstProb)
 }

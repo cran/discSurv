@@ -32,8 +32,8 @@ stopifnot(all.equal(grad(func=gumbel()$linkinv, x=-1), gumbel()$mu.eta (-1)))
 
 TrueProbs <- c(0.2, 0.3, 0.1, 0.3, 0.1)
 TrueSurv <- sapply(1:length(TrueProbs), function (x) 1-sum(TrueProbs [1:x]))
-TrueHaz <- c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueProbs [x] / TrueSurv [x-1]))
-EstSurvFunc <- as.numeric(estSurv(TrueHaz [1:(length(TrueHaz)-1)]))
+TrueHaz <- round(c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueProbs [x] / TrueSurv [x-1])), 3)
+EstSurvFunc <- as.numeric(estSurv(TrueHaz))
 stopifnot(all.equal(EstSurvFunc, TrueSurv))
 
 #############################
@@ -42,12 +42,12 @@ stopifnot(all.equal(EstSurvFunc, TrueSurv))
 TrueProbs <- (10:1)/sum(10:1)
 TrueSurv <- sapply(1:length(TrueProbs), function (x) 1-sum(TrueProbs [1:x]))
 TrueHaz <- c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueProbs [x] / TrueSurv [x-1]))
-EstMargProb <- as.numeric(estMargProb(TrueHaz [1:(length(TrueHaz)-1)]))
+EstMargProb <- as.numeric(estMargProb(TrueHaz))
 stopifnot(all.equal(EstMargProb, TrueProbs))
 
 # Case with only a single observed time interval
 TrueProbs <- c(1/5, 4/5)
 TrueSurv <- sapply(1:length(TrueProbs), function (x) 1-sum(TrueProbs [1:x]))
 TrueHaz <- c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueProbs [x] / TrueSurv [x-1]))
-EstMargProb <- as.numeric(estMargProb(TrueHaz [1:(length(TrueHaz)-1)]))
+EstMargProb <- as.numeric(estMargProb(TrueHaz))
 stopifnot(all.equal(EstMargProb, TrueProbs))

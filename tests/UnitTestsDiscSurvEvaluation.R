@@ -21,9 +21,6 @@ set.seed(-789)
 Ind2 <- sample(1:dim(cost0) [1], 50)
 # Combine
 cost <- rbind(cost1 [Ind1, ], cost0 [Ind2, ])
-head(cost)
-summary(cost$status)
-summary(cost$time)
 
 # Estimate true positive rate of time interval 1: 
 # Correspondes to two month duration (each interval is of length two weeks)
@@ -84,6 +81,19 @@ plot(tryAUCshort)
 tryConcorIndexShort <- concorIndex (tryAUCshort)
 tryConcorIndexShort
 summary(tryConcorIndexShort)
+
+# Check that tprUnoShort, fprUnoShort, aucUno are not available for last time point
+tryTPRshort <- tprUnoShort (timepoint=max(costTrain$time), marker=gamMarker, 
+                            newTime=costTest$time, newEvent=costTest$status, 
+                            trainTime=costTrain$time, trainEvent=costTrain$status)
+tryTPRshort
+tryFPRshort <- fprUnoShort (timepoint=max(costTrain$time), marker=gamMarker, 
+                            newTime=costTest$time, newEvent=costTest$status)
+tryFPRshort
+stopifnot(any(is.na(tryFPRshort$Output [, "fpr"])))
+tryAUCshort <- aucUno (tprObj=tryTPRshort, fprObj=tryFPRshort)
+tryAUCshort
+stopifnot(is.na(tryAUCshort$Output))
 
 ############################
 # martingaleResid

@@ -42,7 +42,7 @@ brierScore <- function (dataSet, trainIndices, survModelFormula, linkFunc="logit
   # Help function
   B <- function(k) {
     probs <- estMargProb (LambdaSplit [[k]] [, "Lambda" ])
-    probs <- probs [-length(probs)]
+    # probs <- probs[-length(probs)]
     
     if(length(probs [-length(probs)])!=0) {
       brierVec <- as.numeric(tail(LambdaSplit [[k]] [, censColumn], 1) * (1 - tail(probs, 1))^2 + sum (probs [-length(probs)]))
@@ -352,10 +352,17 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
 }
 
 print.discSurvTprUno <- function (x, ...) {
-  print(round(x$Output, 4))
+  x$Output[, "cutoff"] <- round(x$Output[, "cutoff"], 4)
+  if(!any(is.na(x$Output[, "tpr"]))) {
+    x$Output[, "tpr"] <- round(x$Output[, "tpr"], 4)
+  } 
+  print(x$Output, ...)
 }
 
 plot.discSurvTprUno <- function (x, ...) {
+  if(any(is.na(x$Output [, "tpr"]))) {
+    return("No plot available, because there are missing values in tpr!")
+  }
   plot(x=x$Output [, "cutoff"], y=x$Output [, "tpr"], xlab="Cutoff", ylab="Tpr", las=1, type="l", main=paste("Tpr(c, t=", x$Input$timepoint, ")", sep=""), ...)
 }
 
@@ -405,26 +412,45 @@ tprUnoShort <- function (timepoint, marker, newTime, newEvent, trainTime, trainE
   dataSetLongCensTrans <- TransformLongToShort (dataSetLong=dataSetLongCens, idColumn="obj")
   dataSetLongCensTrans <- na.omit(dataSetLongCensTrans)
   
+  # Exclude test time intervals not observed in training data
+  newTimeInput <- newTime
+  newTime <- newTime[newTime %in% intersect(newTime, trainTime)]
+  if(length(newTime)==0){
+    tempDat <- data.frame(cutoff = sort(marker), tpr = NA)
+    rownames(tempDat) <- 1:dim(tempDat) [1]
+    RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
+                                           newTime=newTimeInput, newEvent=newEvent, 
+                                           trainTime=trainTime, trainEvent=trainEvent, 
+                                           Short=TRUE))
+    class(RET) <- "discSurvTprUno"
+    return(RET)
+  }
+  
   # Estimate nonparametric survival function of censoring variable 
   tempLifeTab <- lifeTable (dataSet=dataSetLongCensTrans, timeColumn="timeInt", censColumn="yCens")
   preG <- tempLifeTab [[1]] [, "S"]
-  GT <- c(1, preG [-length(preG)])
+  GT <- c(1, preG)
   GT <- GT [newTime]
   
   # Help function
   sens <- function(k) {
-    sensNum <- sum((marker > k) * (newTime == timepoint) * newEvent / GT, na.rm = TRUE)
-    sensDenom <- sum((newTime == timepoint) * newEvent / GT, na.rm = TRUE)
+    sensNum <- sum( (marker > k) * (newTime == timepoint) * newEvent / GT)
+    sensDenom <- sum( (newTime == timepoint) * newEvent / GT)
     
-    if (sensDenom > 0)
-      return(sensNum / sensDenom) else
-        return(0)
+    if (sensDenom > 0) {
+      return(sensNum / sensDenom)
+    } else{
+      return(NA)
+    }
   }
   
   RET <- sapply(marker, sens)
   tempDat <- data.frame(cutoff = sort(marker), tpr = RET [order(marker)])
   rownames(tempDat) <- 1:dim(tempDat) [1]
-  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, newTime=newTime, newEvent=newEvent, trainTime=trainTime, trainEvent=trainEvent, Short=TRUE))
+  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
+                                         newTime=newTimeInput, newEvent=newEvent, 
+                                         trainTime=trainTime, trainEvent=trainEvent, 
+                                         Short=TRUE))
   class(RET) <- "discSurvTprUno"
   return(RET)
 }
@@ -475,31 +501,17 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   if(!("formula" %in% class(survModelFormula))) {stop("*survModelFormula* is not of class formula! Please specify a valid formula, e. g. y ~ x")}
   if(!(any(names(dataSet)==idColumn) | is.null(idColumn))) {stop("Argument *idColumn* is not available in *dataSet*! Please specify the correct column name of the identification number.")}
   
-#   # Help function
-#   spec <- function(k){
-#     
-#     specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
-#     specDenom <- sum(newTime > timepoint, na.rm = TRUE)
-#     
-#     if (specDenom > 0)
-#       return(specNum / specDenom) else
-#         return(0)
-#   }
   # Help function
-  # Changed to avoid undefined specificity at the last time point.
-  # Persons in the test data are likewise controls, 
-  # if the new time point in the test data is equal to considered time point and 
-  # the observation is censored
   spec <- function(k){
-    
-    specNum <- sum((marker <= k) * ((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
-    specDenom <- sum(((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
-    
+
+    specNum <- sum( (marker <= k) * (newTime > timepoint), na.rm = TRUE)
+    specDenom <- sum(newTime > timepoint, na.rm = TRUE)
+
     if (specDenom > 0)
       return(specNum / specDenom) else
         return(0)
   }
-  
+
   # Loop across all training data sets
   RET <- vector("list", length(trainIndices))
   markerList <- vector("list", length(trainIndices))
@@ -606,10 +618,17 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
 }
 
 print.discSurvFprUno <- function (x, ...) {
-  print(round(x$Output, 4))
+  x$Output[, "cutoff"] <- round(x$Output[, "cutoff"], 4)
+  if(!any(is.na(x$Output[, "fpr"]))) {
+    x$Output[, "fpr"] <- round(x$Output[, "fpr"], 4)
+  } 
+  print(x$Output, ...)
 }
 
 plot.discSurvFprUno <- function (x, ...) {
+  if(any(is.na(x$Output [, "fpr"]))) {
+    return("No plot available, because there are missing values in tpr!")
+  }
   plot(x=x$Output [, "cutoff"], y=x$Output [, "fpr"], xlab="Cutoff", ylab="Fpr", las=1, type="l", main=paste("Fpr(c, t=", x$Input$timepoint, ")", sep=""), ...)
 }
 
@@ -623,30 +642,22 @@ plot.discSurvFprUno <- function (x, ...) {
 fprUnoShort <- function (timepoint, marker, newTime, newEvent) {
   
   # Help function
-#   spec <- function(k) {
-#     
-#     specNum <- sum((marker <= k) * (newTime > timepoint), na.rm = TRUE)
-#     specDenom <- sum(newTime > timepoint, na.rm = TRUE)
-#     
-#     if (specDenom > 0)
-#       return(specNum / specDenom) else
-#         return(0)
-#   }
   spec <- function(k){
     
-    specNum <- sum((marker <= k) * ((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
-    specDenom <- sum(((newTime > timepoint) | (newTime==timepoint & newEvent==0) ), na.rm = TRUE)
+    specNum <- sum( (marker <= k) * (newTime > timepoint) )
+    specDenom <- sum(newTime > timepoint)
     
     if (specDenom > 0)
       return(specNum / specDenom) else
-        return(0)
+        return(NA)
   }
   
   # Output
   RET <- sapply(marker, spec)
   tempDat <- data.frame(cutoff = sort(marker), fpr = 1 - RET [order(marker)])
   rownames(tempDat) <- 1:dim(tempDat) [1]
-  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, newTime=newTime, Short=TRUE))
+  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
+                                         newTime=newTime, Short=TRUE))
   class(RET) <- "discSurvFprUno"
   return(RET)
 }
@@ -687,7 +698,7 @@ aucUno <- function (tprObj, fprObj) {
   tpr <- c(1, tprObj$Output$tpr)
   fpr <- c(1, fprObj$Output$fpr)
   
-  trapz <- function (x, y){ # from package caToosl
+  trapz <- function (x, y){ # from package caTools
     idx = 2:length(x)
     return(as.double((x[idx] - x[idx - 1]) %*% (y[idx] + y[idx - 1]))/2)
   }
@@ -706,6 +717,9 @@ print.discSurvAucUno <- function (x, ...) {
 plot.discSurvAucUno <- function (x, ...) {
   tprVal <- x$Input$tprObj$Output [, "tpr"]
   fprVal <- x$Input$fprObj$Output [, "fpr"]
+  if(any(is.na(tprVal)) | any(is.na(fprVal))) {
+    return("No plot available, because either tprVal or fprVal contains missing values!")
+  }
   plot(x=fprVal, y=tprVal, xlab="Fpr", ylab="Tpr", las=1, type="l", main=paste("ROC(c, t=", x$Input$tprObj$Input$timepoint, ")", sep=""), ...)
   lines(x=seq(0, 1, length.out=500), y=seq(0, 1, length.out=500), lty=2)
 }
@@ -737,7 +751,7 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
     newEvent <- aucObj$Input$tprObj$Input$newEvent
     trainTime <- aucObj$Input$tprObj$Input$trainTime
     trainEvent <- aucObj$Input$tprObj$Input$trainEvent
-    MaxTime <- max(trainTime)
+    MaxTime <- max(trainTime)-1
     AUCalltime <- vector("numeric", MaxTime)
     for(i in 1:MaxTime) {
       tempTPR <- tprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent, 
@@ -757,7 +771,7 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
   else {
 
     # Estimate AUC for all t
-    MaxTime <- max(aucObj$Input$tprObj$Input$dataSet [, as.character(aucObj$Input$tprObj$Input$survModelFormula) [2] ])
+    MaxTime <- max(aucObj$Input$tprObj$Input$dataSet [, as.character(aucObj$Input$tprObj$Input$survModelFormula) [2] ])-1
     DataSet <- aucObj$Input$tprObj$Input$dataSet
     TrainIndices <- aucObj$Input$tprObj$Input$trainIndices
     SurvModelFormula <- aucObj$Input$tprObj$Input$survModelFormula
@@ -769,7 +783,7 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
     for(i in 1:MaxTime) {
       tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
-      AUCalltime [i] <- aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output
+      AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
       if(printTimePoints) {cat("Timepoint =", i, "done", "\n")}
     }
   
@@ -799,10 +813,11 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
     MargProb <- estMargProb(MargHaz)
   }
   
-  # Calcualte concordance index
-  weights <- MargProb*MargSurv / sum(MargProb*MargSurv)
+  # Calculate concordance index
+  weights <- MargProb * MargSurv / sum(MargProb * MargSurv)
   # Last weight is zero and can therefore be omitted
-  Concor <- sum(AUCalltime * weights [-length(weights)])
+  # Missing values in AUC are left out
+  Concor <- sum(AUCalltime * weights [-length(weights)], na.rm=TRUE)
   names(Concor) <- "C*"
   names(AUCalltime) <- paste("AUC(t=", 1:MaxTime, "|x)", sep="")
   Output <- list(Output=Concor, Input=list(aucObj=aucObj, AUC=AUCalltime, MargProb=MargProb, MargSurv=MargSurv))

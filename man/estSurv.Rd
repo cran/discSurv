@@ -17,7 +17,7 @@ Numeric vector of estimated hazard rates.
 }
 }
 \details{
-The argument *haz* must be given for the first q intervals [a_0, a_1), [a_1, a_2), ..., [a_{q-1}, a_q). The last interval is calculated automatically.
+The argument *haz* must be given for the all intervals [a_0, a_1), [a_1, a_2), ..., [a_{q-1}, a_q), [a_{q}, Inf).
 }
 \value{
 Named vector of estimated probabilities of survival.
@@ -30,11 +30,9 @@ Named vector of estimated probabilities of survival.
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 }
 
-%%\note{
-%%  ~~further notes~~
-%%}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\note{
+It is assumed that all time points up to the last interval [a_q, Inf) are available. If not already present, these can be added manually.
+}
 
 \seealso{
 \code{\link{estMargProb}}
