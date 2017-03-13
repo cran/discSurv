@@ -36,6 +36,9 @@ TrueHaz <- round(c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueP
 EstSurvFunc <- as.numeric(estSurv(TrueHaz))
 stopifnot(all.equal(EstSurvFunc, TrueSurv))
 
+# Numerical issues
+estSurv(c(0-10*.Machine$double.eps, 1+10*.Machine$double.eps))
+
 #############################
 # estMargProb
 
@@ -51,3 +54,6 @@ TrueSurv <- sapply(1:length(TrueProbs), function (x) 1-sum(TrueProbs [1:x]))
 TrueHaz <- c(TrueProbs [1], sapply(2:length(TrueProbs), function (x) TrueProbs [x] / TrueSurv [x-1]))
 EstMargProb <- as.numeric(estMargProb(TrueHaz))
 stopifnot(all.equal(EstMargProb, TrueProbs))
+
+# Numerical issues
+estMargProb(c(0-10*.Machine$double.eps, 1+10*.Machine$double.eps))

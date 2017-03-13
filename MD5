@@ -1,7 +1,7 @@
-2cf6f7ba7ee1cf6a9d1bf8f367693d4d *DESCRIPTION
+9b6938dcc02fbdbfe55fb7f451758d33 *DESCRIPTION
 6a8c1c3ab51393ef3587f12cdeb7db8e *NAMESPACE
 7a782ad9ea4cf10fb8c848201d30e58b *R/DiscSurvDataTransform.R
-909c7c50d2da1261dc6e6953778a848e *R/DiscSurvEstimation.R
+9ab0d09f2e49cd1e48629ff4db793844 *R/DiscSurvEstimation.R
 2db72014419c5af94a27a711c8f60494 *R/DiscSurvEvaluation.R
 3c5ba26df77f268486c1097eeb9f669e *R/DiscSurvLifeTable.R
 666b68f60bae23ca92846766670925a0 *R/DiscSurvSimulation.R
@@ -17,7 +17,7 @@ e7a4bdc2dcae7cdced8ce32e30f9364b *man/dataLongCompRisks.Rd
 24ae779b713a5651a04b69ccab5f4590 *man/dataLongTimeDep.Rd
 e2e8c1f1933cce4014cad68066333546 *man/devResid.Rd
 706990aa4290f4f4c51b2e27f0f37d0e *man/devResidShort.Rd
-0147fa36799234d872917ffe3538bf8f *man/discSurv-package.Rd
+a15d879030a8cb3339ba4a2b3cdf81ea *man/discSurv-package.Rd
 98f7aa3fff77bd80e397c2e0d5545bc2 *man/estMargProb.Rd
 62578e1ff756d61c8ffe70039e4896ca *man/estSurv.Rd
 289db9534a07e2606786761ce1fbb1fe *man/fprUno.Rd
@@ -49,7 +49,7 @@ a8f3f5bfcf7a4fd9d0b188621b3981b1 *man/summary.discSurvPredErrDisc.Rd
 eb2546177bf9577525d17a9f49924289 *man/tprUno.Rd
 184c80ed58aa1a559663e75b65c02291 *man/tprUnoShort.Rd
 09b8cd463dc9a81848f7497160504106 *tests/UnitTestsDiscSurvDataTransform.R
-c20cddacb7ccca2f91d98927276e22b9 *tests/UnitTestsDiscSurvEstimation.R
+8f68d813ceb45ec3ec708a5b6c42d518 *tests/UnitTestsDiscSurvEstimation.R
 33e3fa698682e1843ed28776375f1674 *tests/UnitTestsDiscSurvEvalShort.R
 3fb5a40c6b5bf41e2f3b8969c28d7dfa *tests/UnitTestsDiscSurvEvaluation.R
 54695b92eb04ad424dea5049c4439e73 *tests/UnitTestsDiscSurvLifeTable.R

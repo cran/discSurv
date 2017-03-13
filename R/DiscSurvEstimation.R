@@ -40,8 +40,9 @@ estSurv <- function (haz) {
   # Input checks
   if(!is.vector(haz)) {stop(
     "Argument *haz* is not a vector! Please specify a numeric vector of estimated hazard rates.")}
-  if(!all(0<=haz & haz<=1)) {stop(
-    "Argument *haz* is not a vector of probabilities! Please specify a numeric vector of estimated hazard rates.")}
+  if(!all(-sqrt(.Machine$double.eps) <= haz & 
+          haz - 1 <= sqrt(.Machine$double.eps))) {
+    stop("Argument *haz* is not a vector of probabilities! Please specify a numeric vector of estimated hazard rates.")}
   
   erg <- cumprod(1-haz)
   names(erg) <- paste("S(T=", 1:length(haz), ")", sep="")
@@ -67,7 +68,10 @@ estMargProb <- function (haz) {
   
   # Input checks
   if(!is.vector(haz)) {stop("Argument *haz* is not a vector! Please specify a numeric vector of estimated hazard rates.")}
-  if(!all(0<=haz & haz<=1)) {stop("Argument *haz* is not between 0 and 1! Please specify a numeric vector of probabilities.")}
+  if(!all(-sqrt(.Machine$double.eps) <= haz & 
+          haz - 1 <= sqrt(.Machine$double.eps))) {
+    stop("Argument *haz* is not between 0 and 1! Please specify a numeric vector of probabilities.")
+  }
   if(length(haz)==0) {stop("Argument *haz* is empty! Please specify a numeric vector of probabilities.")}
   
   if(length(haz)>1) {
