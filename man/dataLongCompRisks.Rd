@@ -8,7 +8,8 @@ Data Long Competing Risks Transformation
 Transforms short data format to long format for discrete survival modelling in the case of competing risks with right censoring. It is assumed that the covariates are not time varying. 
 }
 \usage{
-dataLongCompRisks(dataSet, timeColumn, eventColumns, timeAsFactor=TRUE)
+dataLongCompRisks(dataSet, timeColumn, eventColumns, 
+eventColumnsAsFactor=FALSE, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -19,7 +20,10 @@ Original data in short format. Must be of class "data.frame".
 Character giving the column name of the observed times. It is required that the observed times are discrete (integer).
 }
   \item{eventColumns}{
-Character vector giving the column names of the event indicators. It is required that all events are binary and the sum of all event indicators at a given time point, equals one.
+Character vector giving the column names of the event indicators (excluding censoring column). It is required that all events are binary encoded. If the sum of all event indicators is zero, then this is interpreted as a censored observation. Alternatively a column name of a factor representing competing events can be given. In this case the argument "eventColumnsAsFactor" has to be set TRUE and the first level is assumed to represent censoring.
+}
+  \item{eventColumnsAsFactor}{
+Should the argument "eventColumns" be intepreted as column name of a factor variable(logical scalar)? Default is FALSE. 
 }
   \item{timeAsFactor}{
 Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
@@ -44,6 +48,8 @@ Original data set in long format with additional columns
 }
 }
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Steele Fiona and Goldstein Harvey and Browne William, (2004),
 \emph{A general multilevel multistate competing risks model 
 for event history data}
@@ -80,7 +86,8 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{contToDisc}}, \code{\link{dataLongTimeDep}}
+\code{\link{contToDisc}}, \code{\link{dataLongTimeDep}}, 
+\code{\link{dataLongCompRisksTimeDep}}
 }
 \examples{
 # Example with unemployment data

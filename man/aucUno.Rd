@@ -33,6 +33,9 @@ The auc is estimated by numerical integration of the ROC curve.
 }
 
 \references{
+Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), \emph{Discrimination Measures for Discrete Time-to-Event Predictions, Econometrics and Statistics}, Elsevier, 
+DOI: 10.1016/j.ecosta.2017.03.008
+
 Hajime Uno and Tianxi Cai and Lu Tian and L. J. Wei, (2007), 
 \emph{Evaluating Prediction Rules for t-Year Survivors With Censored Regression Models},
 Journal of the American Statistical Association
@@ -60,7 +63,7 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
 %%\note{
-%%  ~~further notes~~
+%%
 %%}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
@@ -133,8 +136,8 @@ nwtcoSubTempTrain <- nwtcoSubTemp [TrainingSample, ]
 nwtcoSubTempTest <- nwtcoSubTemp [-TrainingSample, ]
 
 # Convert to long format
-nwtcoSubTempTrainLong <- dataLong(dataSet=nwtcoSubTempTrain, timeColumn="timeDisc", 
-censColumn="rel")
+nwtcoSubTempTrainLong <- dataLong(dataSet=nwtcoSubTempTrain, 
+timeColumn="timeDisc", censColumn="rel")
 
 # Estimate glm
 inputFormula <- y ~ timeInt + histol + instit + stage
@@ -149,7 +152,7 @@ trainTime=nwtcoSubTempTrain$timeDisc, trainEvent=nwtcoSubTempTrain$rel)
 
 # Estimate fpr given one training and one test sample at time interval 5
 fprFit <- fprUnoShort (timepoint=5, marker=linPreds, 
-newTime=nwtcoSubTempTest$timeDisc, newEvent=nwtcoSubTempTest$rel)
+newTime=nwtcoSubTempTest$timeDisc)
 
 # Estimate auc
 tryAUC <- aucUno (tprObj=tprFit, fprObj=fprFit)

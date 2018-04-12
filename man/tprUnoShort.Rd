@@ -38,10 +38,14 @@ This function is useful, if other models than generalized, linear models (glm) s
 List with objects
 \itemize{
 	\item{Output} {Data frame with two columns: "cutoff" gives the different marker values and "fpr" the false positive rates}
-	\item{Input} {A list of given argument input values (saved for reference)}
+	\item{Input} {A list of given argument input values (saved for reference). Another list element is \code{selectInd}, which gives the selected indices of the marker values with time intervals available in both training and test sets. In addition there is the list element \code{orderMarker}, which gives the indices of the marker values in increasing order.}
+	\item{selectInd} {Indices which test time is also included in training time}
 }
 }
 \references{
+Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), \emph{Discrimination Measures for Discrete Time-to-Event Predictions}, Econometrics and Statistics, Elsevier, 
+Doi: 10.1016/j.ecosta.2017.03.008
+
 Hajime Uno and Tianxi Cai and Lu Tian and L. J. Wei, (2007), 
 \emph{Evaluating Prediction Rules for t-Year Survivors With Censored Regression Models},
 Journal of the American Statistical Association
@@ -70,11 +74,11 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
 
 \note{
-It is assumed that all time points up to the last interval [a_q, Inf) are available in short format. If not already present, these can be added manually.
+It is assumed that all time points up to the last observed interval [a_{q-1}, a_q) are available.
 }
 
 \seealso{
-\code{\link{tprUno}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createFolds}}, \code{\link{glm}}
+\code{\link{tprUno}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createDataPartition}}, \code{\link{glm}}
 }
 \examples{
 ##################################################
@@ -146,8 +150,8 @@ glmFit <- glm(formula=inputFormula, data=nwtcoSubTempTrainLong, family=binomial(
 linPreds <- predict(glmFit, newdata=cbind(nwtcoSubTempTest, 
 timeInt=nwtcoSubTempTest$timeDisc))
 
-# Estimate tpr given one training and one test sample at time interval 10
-tprFit <- tprUnoShort (timepoint=10, marker=linPreds, 
+# Estimate tpr given one training and one test sample at time interval 5
+tprFit <- tprUnoShort (timepoint=5, marker=linPreds, 
 newTime=nwtcoSubTempTest$timeDisc, newEvent=nwtcoSubTempTest$rel, 
 trainTime=nwtcoSubTempTrain$timeDisc, trainEvent=nwtcoSubTempTrain$rel)
 plot(tprFit)

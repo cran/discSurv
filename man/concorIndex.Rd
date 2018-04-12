@@ -30,6 +30,9 @@ List with objects
 }
 }
 \references{
+Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), \emph{Discrimination Measures for Discrete Time-to-Event Predictions, Econometrics and Statistics}, Elsevier, 
+DOI: 10.1016/j.ecosta.2017.03.008
+
 Hajime Uno and Tianxi Cai and Lu Tian and L. J. Wei, (2007), 
 \emph{Evaluating Prediction Rules for t-Year Survivors With Censored Regression Models},
 Journal of the American Statistical Association
@@ -58,7 +61,7 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
 
 \note{
-It is assumed that all time points up to the last interval [a_q, Inf) are available. If not already present, these can be added manually.
+It is assumed that all time points up to the last observed interval [a_{q-1}, a_q) are available. If not already present, these can be added manually.
 }
 
 \seealso{
@@ -71,37 +74,45 @@ library(Ecdat)
 library(caret)
 data(UnempDur)
 
-# Extract subset of data
-set.seed(635)
-IDsample <- sample(1:dim(UnempDur)[1], 100)
-UnempDurSubset <- UnempDur [IDsample, ]
+# Evaluation of short term prediction for re-employed at full-time job
+# Last interval q=14
+# -> Set all time points with spell > 13 to time interval 13 and censored
+lastObsInterval <- 13
+UnempDurSubset <- UnempDur
+UnempDurSubset[UnempDurSubset$spell > lastObsInterval, "censor1"] <- 0
+UnempDurSubset[UnempDurSubset$spell > lastObsInterval, "spell"] <- lastObsInterval
 head(UnempDurSubset)
 range(UnempDurSubset$spell)
+
+# Select cross-validation samples
 set.seed(7550)
 CVfolds <- createFolds (y=UnempDurSubset$spell, returnTrain=TRUE, k=2)
 
-# Estimate true positive rate of time interval 7: 
+# Continuation ratio model formula
+contModForm <- spell ~ logwage + ui + logwage*ui + age
+
+# Estimate true positive rate of time interval 6: 
 # Correspondes to three and a half month duration (each interval is of length two weeks)
-tryTPR <- tprUno (timepoint=7, dataSet=UnempDurSubset, trainIndices=CVfolds, 
-survModelFormula=spell ~ age + logwage, censModelFormula=censor1 ~ 1, 
+tryTPR <- tprUno (timepoint=6, dataSet=UnempDurSubset, trainIndices=CVfolds, 
+survModelFormula=contModForm, censModelFormula=censor1 ~ 1, 
 linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryTPR
 plot(tryTPR)
 
-# Estimate false positive rate of time interval 7:
-tryFPR <- fprUno (timepoint=7, dataSet=UnempDurSubset, trainIndices=CVfolds,  
-survModelFormula=spell ~ age + logwage, censModelFormula=censor1 ~ 1, 
+# Estimate false positive rate of time interval 6:
+tryFPR <- fprUno (timepoint=6, dataSet=UnempDurSubset, trainIndices=CVfolds,  
+survModelFormula=contModForm, censModelFormula=censor1 ~ 1, 
 linkFunc="logit", idColumn=NULL, timeAsFactor=FALSE)
 tryFPR
 plot(tryFPR)
 
-# Estimate false positive rate of time interval 7:
+# Estimate AUC rate of time interval 6:
 tryAUC <- aucUno (tprObj=tryTPR, fprObj=tryFPR)
 tryAUC
 plot(tryAUC)
 
 \dontrun{# Estimate global concordance index:
-tryConcorIndex <- concorIndex (tryAUC)
+tryConcorIndex <- concorIndex (tryAUC, printTimePoints=TRUE)
 tryConcorIndex
 summary(tryConcorIndex)}
 }

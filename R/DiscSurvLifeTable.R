@@ -76,16 +76,18 @@ lifeTable <- function (dataSet, timeColumn, censColumn, intervalBorders=NULL) {
   # Construct interval borders
   if(is.null(intervalBorders)) {
     RowNames <- paste("[", c(0, times [-length(times)]), ", ", times, ")", sep = "")
-  }
-  else {
+  } else {
     RowNames <- intervalBorders
   }
+  
+  # Estimate marginal event probability P(T=t)
+  margProb <- haz * c(1, S[-length(S)])
 
   # RowNames <- RowNames [-length(RowNames)]
   Output <- data.frame(n=atRiskInput, events = events, dropouts = dropouts, atRisk = atRisk,
              hazard = haz, seHazard = sehaz,
              S = S, seS = seS, 
-             cumHazard=cumHazard, seCumHazard=seCumHazard, 
+             cumHazard=cumHazard, seCumHazard=seCumHazard, margProb=margProb,
              row.names = RowNames)
   
   # Exclude last row because theoretically the hazard will be 1 because all subjects die. 

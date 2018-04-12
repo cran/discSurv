@@ -26,6 +26,8 @@ Gives the maximum time interval for which prediction errors are calculated. It m
 Named vector with integrated prediction error per time interval.
 }
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Tilmann Gneiting and Adrian E. Raftery, (2007),
 \emph{Strictly proper scoring rules, prediction, and
 estimation},

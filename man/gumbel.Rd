@@ -16,9 +16,9 @@ Insert this function into a binary regression model
 }
 %%\value{
 %%}
-%%\references{
-%% ~put references to the literature/web site here ~
-%%}
+\references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+}
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 

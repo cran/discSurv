@@ -8,7 +8,8 @@ Data Long Transformation
 Transform data from short format into long format for discrete survival analysis and right censoring. Data is assumed to include no time varying covariates, e. g. no follow up visits are allowed. It is assumed that the covariates stay constant over time, in which no information is available.
 }
 \usage{
-dataLong(dataSet, timeColumn, censColumn, timeAsFactor=TRUE)
+dataLong(dataSet, timeColumn, censColumn, timeAsFactor=TRUE, 
+remLastInt=FALSE, aggTimeFormat=FALSE, lastTheoInt=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,6 +25,15 @@ Character giving the column name of the event indicator. It is required that thi
   \item{timeAsFactor}{
 Should the time intervals be coded as factor? Default is to use factor. If the argument is false, the column is coded as numeric. 
 }
+ \item{remLastInt}{
+Should the last theoretical interval be removed in long format? Default is no deletion. This is only important, if the short format data includes the last theoretic interval [a_q, Inf). There are only events in the last theoretic interval, so the hazard is always one and these observations have to be excluded for estimation. 
+}
+ \item{aggTimeFormat}{
+Instead of the usual long format, should every obseration have all time intervals? (logical scalar) Default is standard long format. In the case of nonlinear risk score models, the time effect has to be integrated out before these can be applied to the C-index \code{\link{concorIndex}}. 
+}
+\item{lastTheoInt}{
+Gives the number of the last theoretic interval (integer scalar). Only used, if aggTimeFormat==TRUE.
+}
 }
 \details{
 If the data has continuous survival times, the response may be transformed to discrete intervals using function \code{\link{contToDisc}}. If the data set has time varying covariates the function \code{\link{dataLongTimeDep}} should be used instead. In the case of competing risks and no time varying covariates see function \code{\link{dataLongCompRisks}}.
@@ -37,6 +47,8 @@ Original data.frame with three additional columns:
 }
 }
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Ludwig Fahrmeir, (1997), \emph{Discrete failure time models},
 LMU Sonderforschungsbereich 386, Paper 91, \url{http://epub.ub.uni-muenchen.de/}
 

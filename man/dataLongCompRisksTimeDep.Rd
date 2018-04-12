@@ -1,14 +1,15 @@
-\name{dataLongTimeDep}
-\alias{dataLongTimeDep}
+\name{dataLongCompRisksTimeDep}
+\alias{dataLongCompRisksTimeDep}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Data Long Time Dependent Covariates
+Data Long Competing Risks Time Dependent Covariates Transformation
 }
 \description{
-Transforms short data format to long format for discrete survival modelling of single event analysis with right censoring. Covariates may vary over time. 
+Transforms short data format to long format for discrete survival modelling in the case of competing risks with right censoring. Covariates may vary over time. 
 }
 \usage{
-dataLongTimeDep(dataSet, timeColumn, censColumn, idColumn, timeAsFactor=TRUE)
+dataLongCompRisksTimeDep(dataSet, timeColumn, eventColumns, 
+eventColumnsAsFactor=FALSE, idColumn, timeAsFactor=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -18,8 +19,11 @@ Original data in short format. Must be of class "data.frame".
   \item{timeColumn}{
 Character giving the column name of the observed times. It is required that the observed times are discrete (integer).
 }
-  \item{censColumn}{
-Character giving the column name of the event indicator. It is required that this is a binary variable with 1=="event" and 0=="censored".
+  \item{eventColumns}{
+Character vector giving the column names of the event indicators (excluding censoring column). It is required that all events are binary encoded. If the sum of all event indicators is zero, then this is interpreted as a censored observation. Alternatively a column name of a factor representing competing events can be given. In this case the argument "eventColumnsAsFactor" has to be set TRUE and the first level is assumed to represent censoring. 
+}
+  \item{eventColumnsAsFactor}{
+Should the argument eventColumns be intepreted as column name of a factor variable(logical scalar)? Default is FALSE. 
 }
   \item{idColumn}{
 Name of column of identification number of persons as character.
@@ -32,16 +36,21 @@ Should the time intervals be coded as factor? Default is to use factor. If the a
 There may be some intervals, where no additional information on the covariates is observed (e. g. observed values in interval one and three but two is missing). In this case it is assumed, that the values from the last observation stay constant over time until a new measurement was done. 
 }
 \value{
-Original data.frame with three additional columns:
+Original data set in long format with additional columns
 \itemize{
-	\item {obj: } {Index of persons as integer vector}
-	\item {timeInt: } {Index of time intervals (factor)}
-	\item {y: } {Response in long format as binary vector. 1=="event happens in period timeInt" and 0 otherwise}
+	\item {obj: } {Gives identification number of objects (row index in short format) (integer)}
+	\item {timeInt: } {Gives number of discrete time intervals (factor)}
+	\item {responses: } {Columns with dimension count of events + 1 (censoring)
+		\itemize{ 
+			\item {e0: } {No event (observation censored in specific interval)}
+			\item {e1: } {Indicator of first event, 1 if event takes place and 0 otherwise}
+			\item {...} {...}
+			\item {ek: } {Indicator of last k-th event, 1 if event takes place and 0 otherwise }
+		}
+	}
 }
 }
 \references{
-Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
-
 Ludwig Fahrmeir, (1997), \emph{Discrete failure time models},
 LMU Sonderforschungsbereich 386, Paper 91, \url{http://epub.ub.uni-muenchen.de/}
 
@@ -76,21 +85,17 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 \examples{
 # Example Primary Biliary Cirrhosis data
 library(survival)
-dataSet1 <- pbcseq
-
-# Only event death is of interest
-dataSet1$status [dataSet1$status==1] <- 0
-dataSet1$status [dataSet1$status==2] <- 1
-table(dataSet1$status)
 
 # Convert to months
-dataSet1$day <- ceiling(dataSet1$day/30)+1
-names(dataSet1) [7] <- "month"
+pbcseq$day <- ceiling(pbcseq$day/30)+1
+names(pbcseq) [7] <- "month"
+pbcseq$status <- factor(pbcseq$status)
 
 # Convert to long format for time varying effects
-pbcseqLong <- dataLongTimeDep (dataSet=dataSet1, timeColumn="month", 
-censColumn="status", idColumn="id")
-pbcseqLong [pbcseqLong$obj==1, ]
+pbcseqLong <- dataLongCompRisksTimeDep(dataSet=pbcseq, timeColumn="month", 
+eventColumns="status", eventColumnsAsFactor=TRUE, idColumn="id", 
+timeAsFactor=TRUE)
+head(pbcseqLong)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

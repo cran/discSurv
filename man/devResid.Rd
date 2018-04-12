@@ -43,6 +43,8 @@ Gives the column name of the identification number of each person. The argument 
 }
 
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Gerhard Tutz, (2012), \emph{Regression for Categorical Data}, Cambridge University Press
 %@book {RegCat,
 %author = {Gerhard Tutz},

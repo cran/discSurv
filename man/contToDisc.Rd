@@ -31,9 +31,9 @@ Specifies if argument *intervalLimits* should be interpreted as number of equidi
 \value{
 Gives the data set expanded with a first column "timeDisc". This column includes the discrete time intervals (ordered factor). 
 }
-%\references{
-%
-%}
+\references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+}
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 }

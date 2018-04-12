@@ -38,9 +38,13 @@ At normal circumstances a covariate free model for the censoring weights is suff
 \value{
 Numeric vector of brier scores for each person in the original data.
 }
-%%\references{
-%% ~put references to the literature/web site here ~
-%%}
+\references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
+Gerds T. A. and M. Schumacher, (2006),
+\emph{Consistent estimation of the expected Brier score in general survival models with right-censored event times},
+Biometrical Journal, Vol. 48, No. 6, pages 1029-1040
+}
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 

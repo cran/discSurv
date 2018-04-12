@@ -40,10 +40,13 @@ List containing an object of class "data.frame" with following columns
 		\item{S: } {Estimated survival curve}
 		\item{seS: } {Estimated standard deviation of estimated survival function}
 		\item{cumHazard: } {Estimated cumulative hazard function}
-		\item{seCumHazard:} {Estimated standard deviation of the estimated cumulative hazard function}	
+		\item{seCumHazard:} {Estimated standard deviation of the estimated cumulative hazard function}
+		\item{margProb:} {Estimated marginal probability of event in time interval}
 	}
 }
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Jerald F. Lawless, (2000), 
 \emph{Statistical Models and Methods for Lifetime Data, 2nd edition},
 Wiley series in probability and statistics

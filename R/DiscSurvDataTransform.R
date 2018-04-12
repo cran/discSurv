@@ -80,7 +80,8 @@ contToDisc <- function(dataSet, timeColumn, intervalLimits, equi=FALSE) {
 # timeInt: Index of time intervals as integer vector
 # y: Response in long format as binary vector. 1=="event happens in period timeInt" and 0 otherwise
 
-dataLong <- function (dataSet, timeColumn, censColumn, timeAsFactor=TRUE) {
+dataLong <- function (dataSet, timeColumn, censColumn, timeAsFactor=TRUE,
+                      remLastInt=FALSE, aggTimeFormat=FALSE, lastTheoInt=NULL) {
 
   # Input checks
   if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
@@ -117,26 +118,56 @@ dataLong <- function (dataSet, timeColumn, censColumn, timeAsFactor=TRUE) {
   c2 <- which(eval(censColumn)==colnames(dataSet))
   
   # Construct indices of persons
-  obj <- rep(1:nrow(dataSet), as.vector(dataSet[, c1]))
-  
+  if(aggTimeFormat){
+    obj <- rep(1:nrow(dataSet), each=lastTheoInt)
+  } else{
+    obj <- rep(1:nrow(dataSet), as.vector(dataSet[, c1]))
+  }
+
   # Long format of covariates
-  dataSetLong <- dataSet[obj,]
+  dataSetLong <- dataSet[obj, ]
   
   # Calculate discrete time interval
-  if(timeAsFactor) {
-    timeInt <- factor(unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1])))
+  if(aggTimeFormat){
+    if(timeAsFactor) {
+      timeInt <- factor( rep(1:lastTheoInt, nrow(dataSet)) )
+    }
+    else{
+      timeInt <- rep(1:lastTheoInt, nrow(dataSet))
+    }
+    # Calculate response
+    y <- c(unlist(apply(dataSet, 1, FUN = 
+        function(k) c(rep(0, as.numeric(k[c1])-1), as.numeric(k[c2]), 
+                      rep(0, lastTheoInt - as.numeric(k[c1]) ) ) )))
+    
+  } else{
+    if(timeAsFactor) {
+      timeInt <- factor(unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1])))
+    }
+    else{
+      timeInt <- unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1]))
+    }
+    # Calculate response
+    y <- c(unlist(apply(dataSet, 1, FUN = 
+         function(k) c(rep(0, as.numeric(k[c1])-1), as.numeric(k[c2])) )))
   }
-  else{
-    timeInt <- unlist(apply(dataSet, 1, FUN = function(k) 1:k[c1]))
-  }
-  
-  # Calculate response
-  y <- c(unlist(apply(dataSet, 1, FUN = function(k) c(rep(0, as.numeric(k[c1])-1), as.numeric(k[c2])) )))
   
   # Aggregate results in one data.frame
   dataSetLong <- cbind(obj, timeInt, y, dataSetLong)
-  return(dataSetLong)
   
+  if(remLastInt) {
+    # Remove cases with observed values in last interval, 
+    # because the hazard is always 1
+    # t==t_max & event==1 -> t==t_max-1 & event==0
+    remInd <- which(dataSetLong$y==1 & 
+                      dataSetLong$timeInt==max(as.numeric(as.character(
+                        dataSetLong$timeInt))) )
+    if(length(remInd)!=0) {
+      dataSetLong <- dataSetLong[-remInd, ]
+    }
+  }
+  
+  return(dataSetLong)
 } 
 
 #########################################################
@@ -160,7 +191,6 @@ dataLong <- function (dataSet, timeColumn, censColumn, timeAsFactor=TRUE) {
 # obj: Index of persons as integer vector
 # timeInt: Index of time intervals as integer vector
 # y: Response in long format as binary vector. 1=="event happens in period timeInt" and 0 otherwise
-
 
 dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn, timeAsFactor=TRUE) {
 
@@ -266,7 +296,8 @@ dataLongTimeDep <- function (dataSet, timeColumn, censColumn, idColumn, timeAsFa
 # ek: Indicator of last event, 1 if event takes place and 0 otherwise
 # dataSet: Original data with replicated rows
 
-dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=TRUE) {
+dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, 
+                               eventColumnsAsFactor=FALSE, timeAsFactor=TRUE) {
 
   # Input checks
   if(!is.data.frame(dataSet)) {stop("Argument *dataSet* is not in the correct format! Please specify as data.frame object.")}
@@ -287,6 +318,20 @@ dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=T
   if(!all(dataSet [, timeColumn]==floor(as.numeric(as.character(dataSet [, timeColumn]))))) {
     stop("*timeColumn* has not only integer values! Please convert the observed time in discrete intervals.")
   }
+
+  #############
+  # Main Code
+  
+  # Alternative input for competing risks coding 
+  # as factor instead of multiple binary columns
+  if(eventColumnsAsFactor) {
+    respFact <- dataSet[, eventColumns]
+    respMat <- model.matrix(~., data.frame(respFact))[, -1]
+    eventColumns <- levels(respFact)[-1]
+    dimnames(respMat) [[2]] <- eventColumns
+    dataSet <- cbind(respMat, dataSet)
+  }
+  
   # Check if event indicators have only zero or one values
   checkVec <- vector("logical", length(eventColumns))
   for(i in 1:length(eventColumns)) {
@@ -295,9 +340,6 @@ dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=T
   if(!all(checkVec)) {
     stop("*eventColumns* is not a binary vector! Please check, that events equals 1 and 0 otherwise.")
   }
-  
-  #############
-  # Main Code
   
   # Index of columns of timeColumn and event indicators
   indextimeColumn <- which(eval(timeColumn)==colnames(dataSet))
@@ -327,9 +369,98 @@ dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=T
   }
   dimnames(responses) [[2]] <- paste("e", 0:NoeventColumns, sep="")
   
+  # Remove unnecessary columns
+  if(eventColumnsAsFactor) {
+    dataSetLong <- dataSetLong[, -which(names(dataSetLong) %in% eventColumns)]
+  }
+  
   # Combine results and output
   dataSetLong <- cbind(obj, timeInt, responses, dataSetLong)
   return(dataSetLong)  
+}
+
+##################################################################################
+# Function for dataLong in the case of competing risks models 
+# with time dependent covariates
+##################################################################################
+
+dataLongCompRisksTimeDep <- function (dataSet, timeColumn, eventColumns, 
+                                      eventColumnsAsFactor=FALSE, idColumn, 
+                                      timeAsFactor=TRUE) {
+  
+  # Alternative input for competing risks coding 
+  # as factor instead of multiple binary columns
+  if(eventColumnsAsFactor) {
+    respFact <- dataSet[, eventColumns]
+    respMat <- model.matrix(~., data.frame(respFact))[, -1]
+    eventColumns <- levels(respFact)[-1]
+    dimnames(respMat) [[2]] <- eventColumns
+    dataSet <- cbind(respMat, dataSet)
+  }
+  
+  # Construct censoring variable in short format
+  indizeseventColumns <- sapply(1:length(eventColumns), function (x) which(eval(eventColumns [x])==colnames(dataSet)))
+  NoeventColumns <- length(indizeseventColumns)
+  # dataSet_eventColumns <- dataSet [, indizeseventColumns]
+  # eventColumnsorShort <- 1 - rowSums(dataSet_eventColumns)
+  responsesShort <- cbind(1, matrix(0, nrow=nrow(dataSet), ncol=NoeventColumns))
+  namesEventColumnsNew <- paste("e", 0:NoeventColumns, sep="")
+  dimnames(responsesShort) [[2]] <- namesEventColumnsNew
+  dataSet <- cbind(responsesShort, dataSet)
+  
+  # Rearrange original data, that ID is in increasing order
+  dataSet <- dataSet[order(dataSet [, idColumn]), ]
+  
+  # Split data by persons
+  splitDataSet <- split(x=dataSet, f=dataSet [, idColumn])
+  lengthSplitDataSet <- 1:length(splitDataSet)
+  
+  # Get count of replicates in each split
+  Counts <- lapply(splitDataSet, function (x) c(diff(x [, timeColumn]), 1))
+  SumCounts <- as.numeric(sapply(Counts, function (x) sum(x)))
+  
+  # Replicate indices in each split
+  Indizes <- lapply(lengthSplitDataSet, function (x) rep(x=1:dim(splitDataSet [[x]])[1], times=Counts [[x]]))
+  
+  # Duplicate rows for each split and combine the results
+  dataList <- lapply(lengthSplitDataSet, function (x) splitDataSet [[x]] [Indizes [[x]], ])
+  dataList <- do.call(rbind, dataList)
+  
+  # Create ID variable in long format for each split and combine the results
+  dataListID <- lapply(lengthSplitDataSet, function (x) rep(x, SumCounts [x]))
+  dataListID <- do.call(c, dataListID)
+  
+  # Create time interval variable in long format for each split and combine results
+  dataListTimeInt <- lapply(lengthSplitDataSet, function (x) 1:SumCounts [x])
+  if(timeAsFactor) {
+    dataListTimeInt <- factor(do.call(c, dataListTimeInt))
+  }
+  else{
+    dataListTimeInt <- do.call(c, dataListTimeInt)
+  }
+  
+  # Adjust responses
+  cumSumSumCounts <- cumsum(SumCounts)
+  rowSumsPre <- rowSums(dataList [, eventColumns])
+  for(i in 1:length(cumSumSumCounts)) {
+    if(rowSumsPre[ cumSumSumCounts[i] ]==1) {
+      # Replace censoring column with zero, if an event occurs
+      dataList[cumSumSumCounts[i], namesEventColumnsNew[1] ] <- 0
+      
+      # Set respective event column to one
+      relCol <- which(dataList [cumSumSumCounts[i], eventColumns]==1) + 1
+      dataList[cumSumSumCounts[i], namesEventColumnsNew[relCol] ] <- 1
+    }
+  }
+  
+  # Remove unnecessary columns
+  if(eventColumnsAsFactor) {
+    dataList <- dataList[, -which(names(dataList) %in% eventColumns)]
+  }
+  
+  # Combine results and output
+  dataComplete <- cbind(obj=dataListID, timeInt=dataListTimeInt, dataList)
+  return(dataComplete)
 }
 
 ######################################################################################
@@ -343,65 +474,145 @@ dataLongCompRisks <- function (dataSet, timeColumn, eventColumns, timeAsFactor=T
 # Input
 # dataSetLong: Original Data in long format
 # respColumn: Variable name of discrete survival response as character
-# idColumn: Variable name of identification number of persons as character
+# timeColumn: Variable name of discrete time interval (character scalar)
 
 # Output
 # Original data.frame dataSetLong, but with added censoring process as first variable "yCens"
 
-dataCensoring <- function (dataSetLong, respColumn, idColumn) {
-
-  # Input checks
+dataCensoring <- function(dataSetLong, respColumn, timeColumn){
+  # Select last observed time
+  lastTimeInd <- c((which(dataSetLong[, timeColumn]==1)-1)[-1], dim(dataSetLong)[1])
   
-  if(!is.data.frame(dataSetLong)) {stop("Argument *dataSetLong* is not in the correct format! Please specify as data.frame object.")}
-  if(!(is.character(respColumn))) {stop("Argument *respColumn* is not in the correct format! Please specify as character.")}
-  if(length(respColumn)!=1) {stop("Argument *respColumn* is not in the correct format! Please specify as scalar with length one.")}
-  if(!(is.character(idColumn))) {stop("Argument *idColumn* is not in the correct format! Please specify as character.")}
-  if(length(idColumn)!=1) {stop("Argument *idColumn* is not in the correct format! Please specify as scalar with length one.")}
+  # Replicate original y
+  ResultVec <- dataSetLong[, respColumn]
   
-  # Can *respColumn* be accessed in *dataSetLong*?
-  if(any(class(tryCatch(dataSetLong [, respColumn], error=function (e) e)) == "error")) {
-    stop("*respColumn* is not available in *dataSetLong*! Please specify the correct column of observed times.")
-  }
-  # Can *idColumn* be accessed in *dataSetLong*?
-  if(any(class(tryCatch(dataSetLong [, idColumn], error=function (e) e)) == "error")) {
-    stop("*idColumn* is not available in *dataSetLong*! Please specify the correct column of the identification number.")
-  }
-
-  # Check if response has only zero or one values
-  if(!all(as.numeric(as.character(dataSetLong [, respColumn]))==0 | as.numeric(as.character(dataSetLong [, respColumn]))==1)) {
-    stop("*idColumn* is not a binary vector! Please check, that events equals 1 and 0 otherwise.")
-  }
+  # Change relevant values of y to yCens
+  ResultVec[lastTimeInd] <- ifelse(dataSetLong[lastTimeInd, "y"]==0, 1, NA)
   
-  ############
-  # Main
-  
-  # Splits data by persons
-  SplitData <- split(x=dataSetLong [, respColumn], f=dataSetLong [, idColumn])
-  
-  for(i in 1:length(SplitData)) {
-    
-    if(tail(SplitData [[i]], n=1)==0) {
-      SplitData [[i]] [length(SplitData [[i]])] <- 1
-    }
-    
-    else {
-      
-      if(tail(SplitData [[i]], n=1)==1) {
-        
-        if(length(SplitData [[i]])==1) {
-          SplitData [[i]] <- NA
-        }
-        
-        else {
-          SplitData [[i]] [length(SplitData [[i]])] <- NA
-        }
-        
-      }
-    }
-  }
-  
-  # Output
-  ResultVec <- do.call(c, SplitData)
-  NewDataSet <- cbind(yCens=ResultVec, dataSetLong)
+  # Append results to output
+  NewDataSet <- cbind(yCens = ResultVec, dataSetLong)
   return(NewDataSet)
+}
+
+# Slow, old version
+# dataCensoring <- function (dataSetLong, respColumn, idColumn) {
+# 
+#   # Input checks
+#   
+#   if(!is.data.frame(dataSetLong)) {stop("Argument *dataSetLong* is not in the correct format! Please specify as data.frame object.")}
+#   if(!(is.character(respColumn))) {stop("Argument *respColumn* is not in the correct format! Please specify as character.")}
+#   if(length(respColumn)!=1) {stop("Argument *respColumn* is not in the correct format! Please specify as scalar with length one.")}
+#   if(!(is.character(idColumn))) {stop("Argument *idColumn* is not in the correct format! Please specify as character.")}
+#   if(length(idColumn)!=1) {stop("Argument *idColumn* is not in the correct format! Please specify as scalar with length one.")}
+#   
+#   # Can *respColumn* be accessed in *dataSetLong*?
+#   if(any(class(tryCatch(dataSetLong [, respColumn], error=function (e) e)) == "error")) {
+#     stop("*respColumn* is not available in *dataSetLong*! Please specify the correct column of observed times.")
+#   }
+#   # Can *idColumn* be accessed in *dataSetLong*?
+#   if(any(class(tryCatch(dataSetLong [, idColumn], error=function (e) e)) == "error")) {
+#     stop("*idColumn* is not available in *dataSetLong*! Please specify the correct column of the identification number.")
+#   }
+# 
+#   # Check if response has only zero or one values
+#   if(!all(as.numeric(as.character(dataSetLong [, respColumn]))==0 | as.numeric(as.character(dataSetLong [, respColumn]))==1)) {
+#     stop("*idColumn* is not a binary vector! Please check, that events equals 1 and 0 otherwise.")
+#   }
+#   
+#   ############
+#   # Main
+#   
+#   # Splits data by persons
+#   SplitData <- split(x=dataSetLong [, respColumn], f=dataSetLong [, idColumn])
+#   
+#   for(i in 1:length(SplitData)) {
+#     
+#     if(tail(SplitData [[i]], n=1)==0) {
+#       SplitData [[i]] [length(SplitData [[i]])] <- 1
+#     }
+#     
+#     else {
+#       
+#       if(tail(SplitData [[i]], n=1)==1) {
+#         
+#         if(length(SplitData [[i]])==1) {
+#           SplitData [[i]] <- NA
+#         }
+#         
+#         else {
+#           SplitData [[i]] [length(SplitData [[i]])] <- NA
+#         }
+#         
+#       }
+#     }
+#   }
+#   
+#   # Output
+#   ResultVec <- do.call(c, SplitData)
+#   NewDataSet <- cbind(yCens=ResultVec, dataSetLong)
+#   return(NewDataSet)
+# }
+
+####################
+# dataCensoringShort
+
+dataCensoringShort <- function(dataSet, eventColumns, timeColumn){
+  # Change relevant values of y to yCens
+  ResultVec <- ifelse(rowSums(dataSet[, eventColumns, drop=FALSE])==0, 1, 0)
+
+  # Exclude observations with time interval==1 and yCens==0
+  deleteIndices <- ResultVec==0 & dataSet[, timeColumn]==1
+  dataSet <- dataSet[!deleteIndices, ]
+  ResultVec <- ResultVec[!deleteIndices]
+  
+  # Change time intervals for censoring process
+  timeCens <- as.numeric(as.character(dataSet[, timeColumn]))
+  timeCens[ResultVec==0] <- timeCens[ResultVec==0]-1
+
+  # Append results to output
+  NewDataSet <- cbind(yCens = ResultVec, timeCens=timeCens, dataSet)
+  return(NewDataSet)
+}
+
+#################
+# dataLongSubdist
+
+dataLongSubDist <- function(dataSet, timeColumn, eventColumns, 
+                            eventFocus, timeAsFactor=TRUE) {
+  #######################
+  # Construct long format
+
+  # Construct object counter
+  dataSet_timeColumn <- as.numeric(as.character(dataSet[, timeColumn]))
+  tmax <- max(dataSet_timeColumn)
+  dataSet_timeColumn <- ifelse(rowSums(dataSet[, eventColumns])==1 & 
+                                 dataSet[, eventFocus] ==0, tmax, 
+                               dataSet_timeColumn)
+  obj <- rep(1:nrow(dataSet), dataSet_timeColumn)
+
+  # Construct time intervals
+  timeInt <- unlist(sapply(1:length(dataSet_timeColumn), 
+                    function(k) 1:dataSet_timeColumn[k]))
+
+  # Construct response for event of interest
+  eventFocus <- dataSet[, eventFocus]
+  y <- unlist(sapply(1:length(dataSet_timeColumn), 
+              function(k) c(rep(0, dataSet_timeColumn[k]-1), eventFocus[k]) ))
+
+  # Estimation of weights
+  estG <- estSurvCens(dataSet=dataSet, timeColumn=timeColumn, 
+                      eventColumns=eventColumns)
+  weights <- estG[timeInt] / 
+    estG[pmin(dataSet[obj, timeColumn], timeInt)]
+  
+  # Combine results
+  if(timeAsFactor){timeInt <- factor(timeInt)}
+  dataSetLong <- cbind(obj=obj, timeInt=timeInt, y=y, dataSet[obj, ])
+  
+  # Remove cases with not available weights
+  remIndices <- is.na(weights)
+  weights <- weights[!remIndices]
+  dataSetLong <- dataSetLong[!remIndices, ]
+  Output <- cbind(dataSetLong, subDistWeights=weights)
+  return(Output)
 }

@@ -8,7 +8,7 @@ False Positive Rate for arbitrary predition models
 Estimates the false positive rate (based on concept of Uno, et al.) for an arbitrary discrete survival prediction model on one test data set. 
 }
 \usage{
-fprUnoShort(timepoint, marker, newTime, newEvent)
+fprUnoShort(timepoint, marker, newTime)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,9 +21,6 @@ Gives the predicted values of the linear predictor of a regression model (numeri
   \item{newTime}{
 New time intervals in the test data (integer vector).
 }
-  \item{newEvent}{
-New event indicators in the test data (integer binary vector).
-}
 }
 \details{
 This function is useful, if other models than generalized, linear models (glm) should be used for prediction. In the case of glm better use the cross validation version \code{\link{fprUno}}.
@@ -33,11 +30,14 @@ This function is useful, if other models than generalized, linear models (glm) s
 	\item{Output: }{A list with objects:}
 		\itemize{
 			\item{Output: } {Data frame with two columns: "cutoff" gives the different marker values and "fpr" the false positive rates}
-			\item{Input: } {A list of given argument input values (saved for reference)}
+			\item{Input: } {A list of given argument input values (saved for reference). In addition there is the list element \code{orderMarker}, which gives the indices of the marker values in increasing order.}
 		}
 	}
 }
 \references{
+Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), \emph{Discrimination Measures for Discrete Time-to-Event Predictions}, Econometrics and Statistics, Elsevier, 
+Doi: 10.1016/j.ecosta.2017.03.008
+
 Hajime Uno and Tianxi Cai and Lu Tian and L. J. Wei, (2007), 
 \emph{Evaluating Prediction Rules for t-Year Survivors With Censored Regression Models},
 Journal of the American Statistical Association
@@ -66,11 +66,11 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
 
 \note{
-It is assumed that all time points up to the last interval [a_q, Inf) are available in short format. If not already present, these can be added manually.
+It is assumed that all time points up to the last observed interval [a_{q-1}, a_q) are available.
 }
 
 \seealso{
-\code{\link{tprUno}}, \code{\link{tprUnoShort}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createFolds}}, \code{\link{glm}}
+\code{\link{tprUno}}, \code{\link{tprUnoShort}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createDataPartition}}, \code{\link{glm}}
 }
 \examples{
 ##################################################
@@ -101,7 +101,7 @@ gamFitPreds <- predict(gamFit, newdata=cbind(UnempDurSubsetTest, timeInt=UnempDu
 
 # Estimate false positive rate
 fprGamFit <- fprUnoShort (timepoint=1, marker=gamFitPreds, 
-newTime=UnempDurSubsetTest$spell, newEvent=UnempDurSubsetTest$censor1)
+newTime=UnempDurSubsetTest$spell)
 plot(fprGamFit)
 
 #####################################
@@ -142,7 +142,7 @@ timeInt=nwtcoSubTempTest$timeDisc))
 
 # Estimate tpr given one training and one test sample at time interval 10
 fprFit <- fprUnoShort (timepoint=10, marker=linPreds, 
-newTime=nwtcoSubTempTest$timeDisc, newEvent=nwtcoSubTempTest$rel)
+newTime=nwtcoSubTempTest$timeDisc)
 plot(fprFit)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

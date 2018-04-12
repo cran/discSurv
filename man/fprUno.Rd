@@ -46,11 +46,14 @@ Should the time intervals be coded as factor? Default is to use factor. If the a
 	\item{Output: }{List with objects:}
 		\itemize{
 			\item{Output: } {Data frame with two columns: "cutoff" gives the different marker values and "fpr" the false positive rates}
-			\item{Input: } {A list of given argument input values (saved for reference)}
+			\item{Input: } {A list of given argument input values (saved for reference). In addition there is the list element \code{orderMarker}, which gives the indices of the marker values in increasing order.}
 		}
 	}
 }
 \references{
+Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), \emph{Discrimination Measures for Discrete Time-to-Event Predictions}, Econometrics and Statistics, Elsevier, 
+Doi: 10.1016/j.ecosta.2017.03.008
+
 Hajime Uno and Tianxi Cai and Lu Tian and L. J. Wei, (2007), 
 \emph{Evaluating Prediction Rules for t-Year Survivors With Censored Regression Models},
 Journal of the American Statistical Association
@@ -84,7 +87,7 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{tprUno}}, \code{\link{tprUnoShort}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createFolds}}, \code{\link{glm}}
+\code{\link{tprUno}}, \code{\link{tprUnoShort}}, \code{\link{aucUno}}, \code{\link{concorIndex}}, \code{\link[caret]{createDataPartition}}, \code{\link{glm}}
 }
 \examples{
 # Example with cross validation and unemployment data 

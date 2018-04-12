@@ -1,32 +1,32 @@
-\name{dataCensoring}
-\alias{dataCensoring}
+\name{dataCensoringShort}
+\alias{dataCensoringShort}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Data Censoring Transformation
+Data Censoring Transformation for short formats
 }
 \description{
-Function for transformation of discrete survival times in censoring encoding. Prior this function the data has to be already transformed to long format. With this new generated variable, the discrete censoring process can be analysed instead of the discrete survival process. In discrete survival analysis this information is used to constructs weights for predictive evaluation measures. It is applicable in single event survival analysis.
+Function for transformation of discrete survival times in censoring encoding. In contrast to \code{\link{dataCensoring}} this function needs the original data in short format as argument. With the new generated variable "yCens", the discrete censoring process can be analyzed instead of the discrete survival process. In discrete survival analysis this information is used to constructs weights for predictive evaluation measures. It is applicable in single event survival analysis.
 }
 \usage{
-dataCensoring(dataSetLong, respColumn, timeColumn)
+dataCensoringShort(dataSet, eventColumns, timeColumn)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{dataSetLong}{
+  \item{dataSet}{
 Original data in transformed long format.
 }
-  \item{respColumn}{
-Name of column of discrete survival response (character scalar).
+  \item{eventColumns}{
+Name of columns of event columns (character vector). The event columns have to be in binary format. If the sum of all events equals zero in a row, then this observation is interpreted as censored. 
 }
   \item{timeColumn}{
-Name of column of discrete time intervals (character scalar).
+Name of column with discrete time intervals (character scalar).
 }
 }
-\details{
-The standard procedure is to use functions such as \code{\link{dataLong}}, \code{\link{dataLongTimeDep}}, \code{\link{dataLongCompRisks}} to augment the data set from short format to long format before using \code{\link{dataCensoring}}. 
-}
+%\details{
+%The standard procedure is to use functions such as \code{\link{dataLong}}, \code{\link{dataLongTimeDep}}, \code{\link{dataLongCompRisks}} to augment the data set from short format to long format before using \code{\link{dataCensoringShort}}. 
+%}
 \value{
-Original data set as argument *dataSetLong*, but with added censoring process as first variable in column "yCens"
+Original data set as argument *dataSet*, but with added censoring process as first variable in column "yCens".
 }
 \references{
 Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
@@ -60,7 +60,7 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{dataCensoringShort}}, \code{\link{contToDisc}}, \code{\link{dataLong}}, \code{\link{dataLongTimeDep}}, \code{\link{dataLongCompRisks}}
+\code{\link{dataCensoring}}, \code{\link{contToDisc}}, \code{\link{dataLong}}, \code{\link{dataLongTimeDep}}, \code{\link{dataLongCompRisks}}
 }
 \examples{
 library(pec)
@@ -73,15 +73,10 @@ subCost <- cost [1:100, ]
 CostMonths <- contToDisc (dataSet=subCost, timeColumn="time", intervalLimits=IntBorders)
 head(CostMonths)
 
-# Convert to long format based on months
-CostMonthsLong <- dataLong (dataSet=CostMonths, timeColumn="timeDisc", censColumn="status")
-head(CostMonthsLong, 20)
-
-# Generate censoring process variable
-CostMonthsCensor <- dataCensoring (dataSetLong=CostMonthsLong, respColumn="y", timeColumn="obj")
-head(CostMonthsCensor)
-tail(CostMonthsCensor [CostMonthsCensor$obj==1, ], 10)
-tail(CostMonthsCensor [CostMonthsCensor$obj==3, ], 10)
+# Generate censoring process variable in short format
+CostMonthsCensorShort <- dataCensoringShort (dataSet=CostMonths, 
+eventColumns="status", timeColumn="time")
+head(CostMonthsCensorShort)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

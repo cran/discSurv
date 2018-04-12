@@ -74,7 +74,7 @@ brierScore <- function (dataSet, trainIndices, survModelFormula, linkFunc="logit
     }
     
     # 2. Convert response in training data to censoring variable
-    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", idColumn="obj")
+    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", timeColumn="timeInt")
     
     # 3. Convert test data to long format
     if(!is.null(idColumn)) {
@@ -209,7 +209,7 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     }
     
     # 2. Convert response in training data to censoring variable
-    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", idColumn="obj")
+    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", timeColumn="timeInt")
     
     # 3. Convert test data to long format
     if(!is.null(idColumn)) {
@@ -340,13 +340,15 @@ tprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   # Merge markers
   marker <- do.call(c, markerList)
   RET <- sapply(marker, sens)
-  tempDat <- data.frame(cutoff = sort(marker), tpr = RET [order(marker)])
+  orderMarker <- order(marker)
+  tempDat <- data.frame(cutoff = marker[orderMarker], tpr = RET[orderMarker])
   rownames(tempDat) <- 1:dim(tempDat) [1]
   
   RET <- list(Output=tempDat, 
               Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, 
                          survModelFormula=survModelFormula, censModelFormula=censModelFormula, 
-                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, timeAsFactor=timeAsFactor))
+                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, 
+                         timeAsFactor=timeAsFactor, orderMarker=orderMarker))
   class(RET) <- "discSurvTprUno"
   return(RET)
 }
@@ -387,73 +389,144 @@ plot.discSurvTprUno <- function (x, ...) {
   # tpr: True positive rate (numeric) \in [0, 1]
 
 tprUnoShort <- function (timepoint, marker, newTime, newEvent, trainTime, trainEvent) {
+
+  # Construct short data format
+  dataSetShort <- data.frame(trainTime=trainTime, trainEvent=trainEvent)
   
-  # Help function
-  TransformLongToShort <- function (dataSetLong, idColumn) {
-    SplitLongData <- split(dataSetLong, dataSetLong [, idColumn])
-    NewDataSplit <- list()
-    for(i in 1:length(SplitLongData)) {
-      if(is.na(tail(SplitLongData [[i]], n=1) [,"yCens"])) {
-        NewDataSplit [[i]] <- tail(SplitLongData [[i]], n=2) [-2,]
-      }
-      else {
-        NewDataSplit [[i]] <- tail(SplitLongData [[i]], n=1)
-      }
-    }
-    result <- do.call(rbind, NewDataSplit)
-    return(result)
-  }
-  
-  # Expand training data in long format with censoring variable
-  dataSetLong <- dataLong (dataSet=data.frame(trainTime=trainTime, trainEvent=trainEvent), timeColumn="trainTime", censColumn="trainEvent")
-  dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", idColumn="obj")
+  # # Expand training data in long format with censoring variable
+  # dataSetLong <- dataLong (dataSet=dataSetShort, timeColumn="trainTime", 
+  #                          censColumn="trainEvent")
+  # dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", 
+  #                                   timeColumn="timeInt")
 
   # Convert back to short format
-  dataSetLongCensTrans <- TransformLongToShort (dataSetLong=dataSetLongCens, idColumn="obj")
-  dataSetLongCensTrans <- na.omit(dataSetLongCensTrans)
-  
+  dataSetLongCensTrans <- dataCensoringShort (dataSet=dataSetShort, 
+                                              eventColumns="trainEvent", 
+                                              timeColumn="trainTime")
+
   # Exclude test time intervals not observed in training data
+  markerInput <- marker
+  newEventInput <- newEvent
   newTimeInput <- newTime
-  newTime <- newTime[newTime %in% intersect(newTime, trainTime)]
+  selectInd <- newTime %in% intersect(newTime, trainTime)
+  marker <- marker[selectInd]
+  newEvent <- newEvent[selectInd]
+  newTime <- newTime[selectInd]
+  
   if(length(newTime)==0){
-    tempDat <- data.frame(cutoff = sort(marker), tpr = NA)
+    orderMarker <- order(marker)
+    tempDat <- data.frame(cutoff = marker[orderMarker], tpr = NA)
     rownames(tempDat) <- 1:dim(tempDat) [1]
-    RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
-                                           newTime=newTimeInput, newEvent=newEvent, 
-                                           trainTime=trainTime, trainEvent=trainEvent, 
-                                           Short=TRUE))
+    RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=markerInput,
+                                           newTime=newTimeInput, newEvent=newEventInput,
+                                           trainTime=trainTime, trainEvent=trainEvent,
+                                           Short=TRUE, selectInd=selectInd,
+                                           orderMarker=orderMarker))
     class(RET) <- "discSurvTprUno"
     return(RET)
   }
-  
-  # Estimate nonparametric survival function of censoring variable 
-  tempLifeTab <- lifeTable (dataSet=dataSetLongCensTrans, timeColumn="timeInt", censColumn="yCens")
+
+  # Estimate nonparametric survival function of censoring variable
+  tempLifeTab <- lifeTable (dataSet=dataSetLongCensTrans, timeColumn="timeCens", 
+                            censColumn="yCens")
   preG <- tempLifeTab [[1]] [, "S"]
   GT <- c(1, preG)
   GT <- GT [newTime]
-  
+
   # Help function
   sens <- function(k) {
     sensNum <- sum( (marker > k) * (newTime == timepoint) * newEvent / GT)
     sensDenom <- sum( (newTime == timepoint) * newEvent / GT)
-    
+
     if (sensDenom > 0) {
       return(sensNum / sensDenom)
     } else{
       return(NA)
     }
   }
-  
+
   RET <- sapply(marker, sens)
-  tempDat <- data.frame(cutoff = sort(marker), tpr = RET [order(marker)])
+  orderMarker <- order(marker)
+  tempDat <- data.frame(cutoff = marker[orderMarker], tpr = RET[orderMarker])
   rownames(tempDat) <- 1:dim(tempDat) [1]
-  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
-                                         newTime=newTimeInput, newEvent=newEvent, 
-                                         trainTime=trainTime, trainEvent=trainEvent, 
-                                         Short=TRUE))
+  RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=markerInput,
+                                         newTime=newTimeInput, newEvent=newEventInput,
+                                         trainTime=trainTime, trainEvent=trainEvent,
+                                         Short=TRUE, selectInd=selectInd,
+                                         orderMarker=orderMarker))
   class(RET) <- "discSurvTprUno"
   return(RET)
 }
+
+# Old, slow version
+# tprUnoShort <- function (timepoint, marker, newTime, newEvent, trainTime, trainEvent) {
+#   
+#   # Help function
+#   TransformLongToShort <- function (dataSetLong, idColumn) {
+#     SplitLongData <- split(dataSetLong, dataSetLong [, idColumn])
+#     NewDataSplit <- list()
+#     for(i in 1:length(SplitLongData)) {
+#       if(is.na(tail(SplitLongData [[i]], n=1) [,"yCens"])) {
+#         NewDataSplit [[i]] <- tail(SplitLongData [[i]], n=2) [-2,]
+#       }
+#       else {
+#         NewDataSplit [[i]] <- tail(SplitLongData [[i]], n=1)
+#       }
+#     }
+#     result <- do.call(rbind, NewDataSplit)
+#     return(result)
+#   }
+#   
+#   # Expand training data in long format with censoring variable
+#   dataSetLong <- dataLong (dataSet=data.frame(trainTime=trainTime, trainEvent=trainEvent), timeColumn="trainTime", censColumn="trainEvent")
+#   dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", idColumn="obj")
+# 
+#   # Convert back to short format
+#   dataSetLongCensTrans <- TransformLongToShort (dataSetLong=dataSetLongCens, idColumn="obj")
+#   dataSetLongCensTrans <- na.omit(dataSetLongCensTrans)
+#   
+#   # Exclude test time intervals not observed in training data
+#   newTimeInput <- newTime
+#   newTime <- newTime[newTime %in% intersect(newTime, trainTime)]
+#   if(length(newTime)==0){
+#     tempDat <- data.frame(cutoff = sort(marker), tpr = NA)
+#     rownames(tempDat) <- 1:dim(tempDat) [1]
+#     RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
+#                                            newTime=newTimeInput, newEvent=newEvent, 
+#                                            trainTime=trainTime, trainEvent=trainEvent, 
+#                                            Short=TRUE))
+#     class(RET) <- "discSurvTprUno"
+#     return(RET)
+#   }
+#   
+#   # Estimate nonparametric survival function of censoring variable 
+#   tempLifeTab <- lifeTable (dataSet=dataSetLongCensTrans, timeColumn="timeInt", censColumn="yCens")
+#   preG <- tempLifeTab [[1]] [, "S"]
+#   GT <- c(1, preG)
+#   GT <- GT [newTime]
+#   
+#   # Help function
+#   sens <- function(k) {
+#     sensNum <- sum( (marker > k) * (newTime == timepoint) * newEvent / GT)
+#     sensDenom <- sum( (newTime == timepoint) * newEvent / GT)
+#     
+#     if (sensDenom > 0) {
+#       return(sensNum / sensDenom)
+#     } else{
+#       return(NA)
+#     }
+#   }
+#   
+#   RET <- sapply(marker, sens)
+#   tempDat <- data.frame(cutoff = sort(marker), tpr = RET [order(marker)])
+#   rownames(tempDat) <- 1:dim(tempDat) [1]
+#   RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
+#                                          newTime=newTimeInput, newEvent=newEvent, 
+#                                          trainTime=trainTime, trainEvent=trainEvent, 
+#                                          Short=TRUE))
+#   class(RET) <- "discSurvTprUno"
+#   return(RET)
+# }
 
 #############################
 # fprUno
@@ -539,7 +612,7 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
     }
     
     # 2. Convert response in training data to censoring variable
-    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", idColumn="obj")
+    TrainLong <- dataCensoring (dataSetLong=TrainLong, respColumn="y", timeColumn="timeInt")
     
     # 3. Convert test data to long format
     if(!is.null(idColumn)) {
@@ -607,12 +680,14 @@ fprUno <- function(timepoint, dataSet, trainIndices, survModelFormula, censModel
   RET <- sapply(marker, spec)
   
   # Output
-  tempDat <- data.frame(cutoff = sort(marker), fpr = 1-RET [order(marker)])
+  orderMarker <- order(marker)
+  tempDat <- data.frame(cutoff = marker[orderMarker], fpr = 1-RET[orderMarker])
   rownames(tempDat) <- 1:dim(tempDat) [1]
   RET <- list(Output=tempDat, 
               Input=list(timepoint=timepoint, dataSet=dataSet, trainIndices=trainIndices, 
                          survModelFormula=survModelFormula, censModelFormula=censModelFormula, 
-                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, timeAsFactor=timeAsFactor))
+                         linkFunc=linkFunc, idColumn=idColumn, Short=FALSE, 
+                         timeAsFactor=timeAsFactor, orderMarker=orderMarker))
   class(RET) <- "discSurvFprUno"
   return(RET)
 }
@@ -639,7 +714,7 @@ plot.discSurvFprUno <- function (x, ...) {
 # Description
 # Estimates the false positive rate given prior estimated marker values
 
-fprUnoShort <- function (timepoint, marker, newTime, newEvent) {
+fprUnoShort <- function (timepoint, marker, newTime) {
   
   # Help function
   spec <- function(k){
@@ -647,17 +722,21 @@ fprUnoShort <- function (timepoint, marker, newTime, newEvent) {
     specNum <- sum( (marker <= k) * (newTime > timepoint) )
     specDenom <- sum(newTime > timepoint)
     
-    if (specDenom > 0)
-      return(specNum / specDenom) else
-        return(NA)
+    if (specDenom > 0) {
+      return(specNum / specDenom)
+    } else {
+      return(NA)
+    }
   }
   
   # Output
   RET <- sapply(marker, spec)
-  tempDat <- data.frame(cutoff = sort(marker), fpr = 1 - RET [order(marker)])
+  orderMarker <- order(marker)
+  tempDat <- data.frame(cutoff = marker[orderMarker], fpr = 1 - RET[orderMarker])
   rownames(tempDat) <- 1:dim(tempDat) [1]
   RET <- list(Output=tempDat, Input=list(timepoint=timepoint, marker=marker, 
-                                         newTime=newTime, Short=TRUE))
+                                         newTime=newTime, Short=TRUE,
+                                         orderMarker=orderMarker))
   class(RET) <- "discSurvFprUno"
   return(RET)
 }
@@ -690,13 +769,18 @@ aucUno <- function (tprObj, fprObj) {
   else {
     InputCheck1 <- identical(tprObj$Input$timepoint, fprObj$Input$timepoint)
     InputCheck2 <- identical(tprObj$Input$marker, fprObj$Input$marker)
-    InputCheck3 <- identical(tprObj$Input$newTime, fprObj$Input$newTime)
-    InputCheck <- all(InputCheck1, InputCheck2, InputCheck3)
+    InputCheck <- all(InputCheck1, InputCheck2)
     if(!InputCheck) {stop("Some input parameters of *tprObj* or *fprObj* are not identical! Please check if both objects were estimated using exact identical input values.")}
   }
   
-  tpr <- c(1, tprObj$Output$tpr)
-  fpr <- c(1, fprObj$Output$fpr)
+  # If short format, select specificities according 
+  if(tprObj$Input$Short){
+    tpr <- c(1, tprObj$Output$tpr)
+    fpr <- c(1, fprObj$Output$fpr[ tprObj$Input$selectInd[tprObj$Input$orderMarker] ])
+  } else{
+    tpr <- c(1, tprObj$Output$tpr)
+    fpr <- c(1, fprObj$Output$fpr)
+  }
   
   trapz <- function (x, y){ # from package caTools
     idx = 2:length(x)
@@ -715,12 +799,22 @@ print.discSurvAucUno <- function (x, ...) {
 }
 
 plot.discSurvAucUno <- function (x, ...) {
+  
+  # In the short case exclude observations with test times not available
+  # in training times
   tprVal <- x$Input$tprObj$Output [, "tpr"]
-  fprVal <- x$Input$fprObj$Output [, "fpr"]
+  if(x$Input$tprObj$Input$Short) {
+    fprVal <- x$Input$fprObj$Output [ x$Input$tprObj$Input$selectInd[
+      x$Input$tprObj$Input$orderMarker], "fpr"]
+  } else{
+    fprVal <- x$Input$fprObj$Output [, "fpr"]
+  }
+  
   if(any(is.na(tprVal)) | any(is.na(fprVal))) {
     return("No plot available, because either tprVal or fprVal contains missing values!")
   }
-  plot(x=fprVal, y=tprVal, xlab="Fpr", ylab="Tpr", las=1, type="l", main=paste("ROC(c, t=", x$Input$tprObj$Input$timepoint, ")", sep=""), ...)
+  plot(x=fprVal, y=tprVal, xlab="Fpr", ylab="Tpr", las=1, type="l", 
+       main=paste("ROC(c, t=", x$Input$tprObj$Input$timepoint, ")", sep=""), ...)
   lines(x=seq(0, 1, length.out=500), y=seq(0, 1, length.out=500), lty=2)
 }
 
@@ -756,9 +850,9 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
     for(i in 1:MaxTime) {
       tempTPR <- tprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent, 
                               trainTime=trainTime, trainEvent=trainEvent)
-      tempFPR <- fprUnoShort (timepoint=i, marker=marker, newTime=newTime, newEvent=newEvent)
+      tempFPR <- fprUnoShort (timepoint=i, marker=marker, newTime=newTime)
       AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
-      if(printTimePoints) {cat("Timepoint =", i, "done", "\n")}
+      if(printTimePoints) {cat("Progress:", round(i/MaxTime*100, 2), "%;", "Timepoint =", i, "\n")}
     }
 
     # Estimate nonparametric survival function S(T=t) and marginal probabilities P(T=t)
@@ -784,7 +878,7 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
       tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
       AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
-      if(printTimePoints) {cat("Timepoint =", i, "done", "\n")}
+      if(printTimePoints) {cat("Progress:", round(i/MaxTime*100, 2), "%;", "Timepoint =", i, "\n")}
     }
   
     # Estimate survival function and marginal probabilities without covariates
@@ -1092,7 +1186,7 @@ predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainT
   
   # Expand training data in long format with censoring variable
   dataSetLong <- dataLong (dataSet=data.frame(trainTime=trainTime, trainEvent=trainEvent), timeColumn="trainTime", censColumn="trainEvent")
-  dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", idColumn="obj")
+  dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", timeColumn="timeInt")
   dataSetLongCens <- na.omit(dataSetLongCens)
   
   # Estimate glm with no covariates of censoring process

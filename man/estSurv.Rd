@@ -22,9 +22,9 @@ The argument *haz* must be given for the all intervals [a_0, a_1), [a_1, a_2), .
 \value{
 Named vector of estimated probabilities of survival.
 }
-%%\references{
-%% ~put references to the literature/web site here ~
-%%}
+\references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+}
 
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}

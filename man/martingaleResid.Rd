@@ -43,6 +43,8 @@ Name of the column with identification numbers of persons. Default NULL means, t
 }
 }
 \references{
+Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
+
 Terry M. Therneau and Patricia M. Grambsch and Thomas R. Fleming, (1990),
 \emph{Martingale-Based Residuals for Survival Models},
 Biometrica, Vol. 77, No. 1, 147-160

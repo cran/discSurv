@@ -50,6 +50,35 @@ estSurv <- function (haz) {
 }
 
 #########################
+# estSurvCens
+
+# Description
+# Estimates the censoring survival function using life table estimator
+
+estSurvCens <- function(dataSet, timeColumn, eventColumns) {
+
+  # # Expand short data to long competing risks format
+  # dataLongFormat  <- dataLongCompRisks (dataSet=dataSet, timeColumn=timeColumn, eventColumns=eventColumns, 
+  #                    timeAsFactor=timeAsFactor)
+  # 
+  # # Construct censoring data
+  # dataSetLongCens <- dataCensoring (dataSetLong=dataLongFormat, respColumn="y", 
+  #                                   timeColumn="timeInt")
+
+  # Convert to censoring format
+  dataSetCens <- dataCensoringShort (dataSet=dataSet, eventColumns=eventColumns,
+                                     timeColumn=timeColumn)
+
+  # Estimate nonparametric survival function of censoring variable
+  tempLifeTab <- lifeTable (dataSet=dataSetCens, timeColumn="timeCens", 
+                            censColumn="yCens")
+  preG <- tempLifeTab [[1]] [, "S"]
+  GT <- c(1, preG)
+  names(GT) <- paste("t=", 0:length(preG), sep="")
+  return(GT)
+}
+
+#########################
 # estMargProb
 
 # Description
