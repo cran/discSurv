@@ -55,7 +55,7 @@ Fit <- glm(formula=y ~ timeInt + age + logwage, data=UnempLong, family=binomial(
 
 # Estimate discrete survival function given age, logwage of first person
 hazard <- predict(Fit, newdata=subset(UnempLong, obj==1), type="response")
-SurvivalFuncCondX <- estSurv(hazard)
+SurvivalFuncCondX <- estSurv(c(hazard, 1))
 SurvivalFuncCondX
 
 }

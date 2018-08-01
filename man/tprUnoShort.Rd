@@ -39,7 +39,6 @@ List with objects
 \itemize{
 	\item{Output} {Data frame with two columns: "cutoff" gives the different marker values and "fpr" the false positive rates}
 	\item{Input} {A list of given argument input values (saved for reference). Another list element is \code{selectInd}, which gives the selected indices of the marker values with time intervals available in both training and test sets. In addition there is the list element \code{orderMarker}, which gives the indices of the marker values in increasing order.}
-	\item{selectInd} {Indices which test time is also included in training time}
 }
 }
 \references{

@@ -70,7 +70,7 @@ head(SubUnempDurLong)
 # Fit discrete subdistribution hazard model with logistic link function
 logisticSubDistr <- glm(y ~ timeInt + ui + age + logwage,
                     family=binomial(), data = SubUnempDurLong, 
-                    weights=SubUnempDurLong$weights)
+                    weights=SubUnempDurLong$subDistWeights)
 summary(logisticSubDistr)
 
 }

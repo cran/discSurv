@@ -1,8 +1,8 @@
-40b6f1f084048be4c21b4c0a42bd2897 *DESCRIPTION
+b98bfbf5bdb4bb1d9ffc805d55bdd9fe *DESCRIPTION
 6a8c1c3ab51393ef3587f12cdeb7db8e *NAMESPACE
 ee2784ed6a6fb8147d829276243a55d8 *R/DiscSurvDataTransform.R
 920cfec0ee475d7641b7da307eeca652 *R/DiscSurvEstimation.R
-161442f312e1e4a6c51baf9a06d2e647 *R/DiscSurvEvaluation.R
+d008c4646f06d5403a85886da754426a *R/DiscSurvEvaluation.R
 d6da3b0606bc1971d7069f4a61457a68 *R/DiscSurvLifeTable.R
 666b68f60bae23ca92846766670925a0 *R/DiscSurvSimulation.R
 8c860d2930554543e92d4f5cac8212b4 *man/adjDevResid.Rd
@@ -16,13 +16,13 @@ c2251c16816241d5e502097b27fc3c2f *man/dataCensoringShort.Rd
 1483d7696064f27904c324146eb12cc2 *man/dataLong.Rd
 504cc0337508602b6859155c593c214e *man/dataLongCompRisks.Rd
 71a5a3599f043fdea6b996d9a4120cf6 *man/dataLongCompRisksTimeDep.Rd
-e34f7547fea13fde65ffdbf85b117449 *man/dataLongSubDist.Rd
+25876a2630c2d30aad1d9de0954be618 *man/dataLongSubDist.Rd
 c47a8534ad0084b8bd95f22d563b4b38 *man/dataLongTimeDep.Rd
 8bb19878814ca54b90b6d541c37d31f8 *man/devResid.Rd
 847e3abb1189511d1034cefbdf32c013 *man/devResidShort.Rd
-c557d827eba12813e0dcf6ff55816b1a *man/discSurv-package.Rd
-1e6e66f3a1b11f95384faada9d58e7a4 *man/estMargProb.Rd
-4c785f0473d65ac9b01a53d6b25194cd *man/estSurv.Rd
+e7894938714e7756f42329012e2fa0cb *man/discSurv-package.Rd
+f80dcfa54efb11dce0fae999a824b322 *man/estMargProb.Rd
+f9ad188078b9a219692792fca29f75ee *man/estSurv.Rd
 29e28fcd9f42684b4e9c97474906fe12 *man/estSurvCens.Rd
 8ce2cfd37eef63c221e79ad4ba879525 *man/fprUno.Rd
 4a23e85a24cd840fb9be8e6db811e470 *man/fprUnoShort.Rd
@@ -51,7 +51,7 @@ b423ec655ca78812123ad24d6390d61f *man/simCompRisk.Rd
 a8f3f5bfcf7a4fd9d0b188621b3981b1 *man/summary.discSurvPredErrDisc.Rd
 6d11cd4ba1201c831724bd3d098cd124 *man/tauToPearson.Rd
 185aabd4dff7f6021146de1ee3473e66 *man/tprUno.Rd
-c50d70ee946f1f0fa7afd422bcd35b2e *man/tprUnoShort.Rd
+085e4b320dac87ff609d56a893998e4f *man/tprUnoShort.Rd
 344ce6cce062029717721f980aad09de *tests/UnitTestsDiscSurvDataTransform.R
 8f68d813ceb45ec3ec708a5b6c42d518 *tests/UnitTestsDiscSurvEstimation.R
 33e3fa698682e1843ed28776375f1674 *tests/UnitTestsDiscSurvEvalShort.R

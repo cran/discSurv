@@ -55,7 +55,7 @@ Fit <- glm(formula=y ~ timeInt + age + logwage, data=UnempLong, family=binomial(
 hazard <- predict(Fit, newdata=subset(UnempLong, obj==1), type="response")
 
 # Estimate marginal probabilities given age, logwage of first person
-MarginalProbCondX <- estMargProb (hazard)
+MarginalProbCondX <- estMargProb (c(hazard, 1))
 MarginalProbCondX
 sum(MarginalProbCondX)==1 # TRUE: Marginal probabilities must sum to 1!
 }

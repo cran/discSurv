@@ -911,10 +911,12 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
   weights <- MargProb * MargSurv / sum(MargProb * MargSurv)
   # Last weight is zero and can therefore be omitted
   # Missing values in AUC are left out
-  Concor <- sum(AUCalltime * weights [-length(weights)], na.rm=TRUE)
+  Concor <- sum(AUCalltime * weights [-length(weights)], na.rm=TRUE) /
+            sum(weights [-length(weights)])
   names(Concor) <- "C*"
   names(AUCalltime) <- paste("AUC(t=", 1:MaxTime, "|x)", sep="")
-  Output <- list(Output=Concor, Input=list(aucObj=aucObj, AUC=AUCalltime, MargProb=MargProb, MargSurv=MargSurv))
+  Output <- list(Output=Concor, Input=list(aucObj=aucObj, AUC=AUCalltime, 
+                                           MargProb=MargProb, MargSurv=MargSurv))
   class(Output) <- "discSurvConcorIndex"
   return(Output)
 }
