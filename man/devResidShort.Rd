@@ -13,10 +13,10 @@ devResidShort(dataSet, hazards)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{dataSet}{
-Original data in short format. Must be of class "data.frame"
+Original data in long format. Must be of class "data.frame". The correct format can be specified with data preparation, see e. g. \code{\link{dataLong}}.
 }
   \item{hazards}{
-Estimated hazard rates of the data in long format. Hazard rates are probabilities and therefore restricted to the interval [0, 1]
+Estimated hazard rates of the data in long format. Discrete hazard rates are probabilities and therefore restricted to the interval [0, 1]
 }
 }
 %%\details{

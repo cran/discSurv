@@ -865,7 +865,8 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
   else {
 
     # Estimate AUC for all t
-    MaxTime <- max(aucObj$Input$tprObj$Input$dataSet [, as.character(aucObj$Input$tprObj$Input$survModelFormula) [2] ])-1
+    MaxTime <- max(aucObj$Input$tprObj$Input$dataSet [, 
+                                                      as.character(aucObj$Input$tprObj$Input$survModelFormula) [2] ])-1
     DataSet <- aucObj$Input$tprObj$Input$dataSet
     TrainIndices <- aucObj$Input$tprObj$Input$trainIndices
     SurvModelFormula <- aucObj$Input$tprObj$Input$survModelFormula
@@ -875,30 +876,48 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
     timeAsFactor <- aucObj$Input$tprObj$Input$timeAsFactor
     AUCalltime <- vector("numeric", MaxTime)
     for(i in 1:MaxTime) {
-      tempTPR <- tprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices, survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
-      tempFPR <- fprUno (timepoint=i, dataSet=DataSet, trainIndices=TrainIndices,  survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
-      AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, fprObj=tempFPR)$Output)
+      tempTPR <- tprUno (timepoint=i, dataSet=DataSet, 
+                         trainIndices=TrainIndices, 
+                         survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
+      tempFPR <- fprUno (timepoint=i, dataSet=DataSet, 
+                         trainIndices=TrainIndices, 
+                         survModelFormula=SurvModelFormula, censModelFormula=CensModelFormula, linkFunc=LinkFunc, idColumn=IdColumn, timeAsFactor=timeAsFactor)
+      AUCalltime [i] <- as.numeric(aucUno (tprObj=tempTPR, 
+                                           fprObj=tempFPR)$Output)
       if(printTimePoints) {cat("Progress:", round(i/MaxTime*100, 2), "%;", "Timepoint =", i, "\n")}
     }
   
     # Estimate survival function and marginal probabilities without covariates
     if(!is.null(IdColumn)) {
-      TrainLongFull <- dataLongTimeDep (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], 
-                                        censColumn=as.character(CensModelFormula) [2], idColumn=IdColumn, timeAsFactor=timeAsFactor)
+      TrainLongFull <- dataLongTimeDep (dataSet=DataSet, 
+                                        timeColumn=as.character(
+                                          SurvModelFormula) [2], 
+                                        censColumn=as.character(
+                                          CensModelFormula) [2], idColumn=IdColumn, timeAsFactor=timeAsFactor)
     }
     else {
-      TrainLongFull <- dataLong (dataSet=DataSet, timeColumn=as.character(SurvModelFormula) [2], 
-                                 censColumn=as.character(CensModelFormula) [2], timeAsFactor=timeAsFactor)
+      TrainLongFull <- dataLong (dataSet=DataSet, 
+                                 timeColumn=as.character(
+                                   SurvModelFormula) [2], 
+                                 censColumn=as.character(
+                                   CensModelFormula) [2], 
+                                 timeAsFactor=timeAsFactor)
     }
     
     # Estimate marginal survival probability with glm
     MargFormula <- y ~ timeInt
-    MargFit <- glm (formula=MargFormula, data=TrainLongFull, family=binomial(link=LinkFunc), control=glm.control(maxit=2500))
+    MargFit <- glm (formula=MargFormula, data=TrainLongFull, 
+                    family=binomial(link=LinkFunc), 
+                    control=glm.control(maxit=2500))
     if(timeAsFactor) {
-      PredMargData <- data.frame(timeInt=factor(min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):max(TrainLongFull [, as.character(SurvModelFormula) [2] ])))
+      PredMargData <- data.frame(timeInt=factor(
+        min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):
+          max(TrainLongFull [, as.character(SurvModelFormula) [2] ])))
     }
     else{
-      PredMargData <- data.frame(timeInt=min(TrainLongFull [, as.character(SurvModelFormula) [2] ]):max(TrainLongFull [, as.character(SurvModelFormula) [2] ]))
+      PredMargData <- data.frame(timeInt=min(
+        TrainLongFull [, as.character(SurvModelFormula) [2] ]):
+          max(TrainLongFull [, as.character(SurvModelFormula) [2] ]))
     }
     MargHaz <- as.numeric(predict(MargFit, PredMargData, type="response"))
     # Survival function S(T=t) = P(T>t) = \prod_{j=1}^{t1} (1-\lambda (T=j))
@@ -908,11 +927,13 @@ concorIndex <- function (aucObj, printTimePoints=FALSE) {
   }
   
   # Calculate concordance index
-  weights <- MargProb * MargSurv / sum(MargProb * MargSurv)
+  weights1 <- MargProb * MargSurv / sum(MargProb * MargSurv)
   # Last weight is zero and can therefore be omitted
-  # Missing values in AUC are left out
-  Concor <- sum(AUCalltime * weights [-length(weights)], na.rm=TRUE) /
-            sum(weights [-length(weights)])
+  # Check for NA, NaN, Inf, -Inf in AUCalltime and weights1
+  # Exclude values, if one of them are missing
+  AUCind <- is.finite(AUCalltime) & is.finite(weights1[-length(weights1)])
+  Concor <- sum( AUCalltime[AUCind] * weights1[-length(weights1)][AUCind] )/
+    sum( weights1[-length(weights1)][AUCind] )
   names(Concor) <- "C*"
   names(AUCalltime) <- paste("AUC(t=", 1:MaxTime, "|x)", sep="")
   Output <- list(Output=Concor, Input=list(aucObj=aucObj, AUC=AUCalltime, 
@@ -1171,7 +1192,8 @@ summary.discSurvPredErrDisc <- function (object, ...) {
 # predErrDiscShort
 # Short Version without CV but usable for arbitrary models
 
-predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainTime, trainEvent) {
+predErrDiscShort <- function (timepoints, estSurvList, newTime, 
+                              newEvent, trainTime, trainEvent) {
   
   # Help functions
   WeightFunction <- function () {
@@ -1180,27 +1202,35 @@ predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainT
     return(PartialSum1 + PartialSum2)
   }
   predErr <- function () {
-    sum(weights * (estSurvInd - Sobs)^2, na.rm=TRUE) / length(weights [!is.na(weights)])
+    sum(weights1[IncludeInd][finiteCheck] * 
+          (estSurvInd[IncludeInd][finiteCheck] - 
+             Sobs[IncludeInd][finiteCheck])^2) / sum(finiteCheck)
   }
   
   #####################
   # Execution
   
   # Expand training data in long format with censoring variable
-  dataSetLong <- dataLong (dataSet=data.frame(trainTime=trainTime, trainEvent=trainEvent), timeColumn="trainTime", censColumn="trainEvent")
-  dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, respColumn="y", timeColumn="timeInt")
+  dataSetLong <- dataLong (dataSet=data.frame(
+    trainTime=trainTime, trainEvent=trainEvent), 
+    timeColumn="trainTime", censColumn="trainEvent")
+  dataSetLongCens <- dataCensoring (dataSetLong=dataSetLong, 
+                                    respColumn="y", timeColumn="timeInt")
   dataSetLongCens <- na.omit(dataSetLongCens)
   
   # Estimate glm with no covariates of censoring process
-  glmCovariateFree <- glm(yCens ~ timeInt, data=dataSetLongCens, family=binomial(), control=glm.control(maxit = 2500))
+  glmCovariateFree <- glm(yCens ~ timeInt, data=dataSetLongCens, 
+                          family=binomial(), control=glm.control(maxit = 2500))
   # Predict survival function of censoring process
   factorPrep <- factor(1:max(as.numeric(as.character(dataSetLongCens$timeInt))))
-  GT_est <- cumprod(1 - predict(glmCovariateFree, newdata=data.frame(timeInt=factorPrep), type="response"))
+  GT_est <- cumprod(1 - predict(glmCovariateFree, 
+                                newdata=data.frame(timeInt=factorPrep), 
+                                type="response"))
   
   # Loop over all time points
   predErrorValues <- vector("numeric", length(timepoints))
   StoreWeights <- vector("list", length(timepoints))
-  for(k in 1:length(timepoints)) {
+  for( k in 1:length(timepoints) ) {
     
     # Instable!
     # Restrict newTime and newEvent
@@ -1214,6 +1244,10 @@ predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainT
     newTimeTemp <- newTime
     newEventTemp <- newEvent
     
+    # Exclude observations, which were censored before t
+    IncludeInd <- ifelse(newTimeTemp < timepoints [k] & 
+                           newEventTemp == 0, FALSE, TRUE)
+    
     # Estimate survival functions of censoring process
     GT <- c(1, GT_est)
     GT <- GT [newTimeTemp]
@@ -1223,23 +1257,30 @@ predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainT
     Sobs <- ifelse(timepoints [k] < newTimeTemp, 1, 0)
     
     # Filter all predicted values: First order is timepoint and second layer is individuals
-    estSurvInd <- sapply(1:length(estSurvList), function (x) estSurvList [[x]] [timepoints [k] ])
+    estSurvInd <- sapply(1:length(estSurvList), 
+                         function (x) estSurvList [[x]] [timepoints [k] ])
     # estSurvInd <- estSurvInd [!Check]
     
     # Estimate weights of each person in test data
-    weights <- WeightFunction ()
-    StoreWeights [[k]] <- weights
+    weights1 <- WeightFunction ()
+    StoreWeights [[k]] <- weights1
     
     # Estimate prediction error
+    finiteCheck <- is.finite(weights1[IncludeInd]) & 
+      is.finite(estSurvInd[IncludeInd]) & 
+      is.finite(Sobs[IncludeInd])
     predErrorValues [k] <- predErr ()
   }
   names(predErrorValues) <- paste("T=", timepoints, sep="")
-  CheckRemove <- is.infinite(predErrorValues) | is.nan(predErrorValues) | is.na (predErrorValues)
-  predErrorValues <- predErrorValues [!CheckRemove]
+  # CheckRemove <- is.infinite(predErrorValues) | is.nan(predErrorValues) | is.na (predErrorValues)
+  # CheckInclude <- is.finite(predErrorValues)
+  # predErrorValues <- predErrorValues [CheckInclude]
   
   # Combine outputs
   RET <- list(Output=list(predErr = predErrorValues, weights = StoreWeights), 
-              Input=list(timepoints=timepoints, estSurvList=estSurvList, newTime=newTime, newEvent=newEvent, trainTime=trainTime, trainEvent=trainEvent, Short=TRUE))
+              Input=list(timepoints=timepoints, estSurvList=estSurvList, 
+                         newTime=newTime, newEvent=newEvent, 
+                         trainTime=trainTime, trainEvent=trainEvent, Short=TRUE))
   class(RET) <- "discSurvPredErrDisc"
   return(RET)
 }
@@ -1253,7 +1294,8 @@ predErrDiscShort <- function (timepoints, estSurvList, newTime, newEvent, trainT
 intPredErrDisc <- function (predErrObj, tmax=NULL) {
   
   # Input check
-  if(!(class(predErrObj)=="discSurvPredErrDisc")) {stop("Object *predErrObj* is not of class *discSurvPredErrDisc*! Please give an appropriate objecte type as input.")}
+  if(!(class(predErrObj)=="discSurvPredErrDisc")) {
+    stop("Object *predErrObj* is not of class *discSurvPredErrDisc*! Please give an appropriate objecte type as input.")}
   
 #  if(predErrObj$Input$Short==FALSE) {
 #  
@@ -1299,7 +1341,9 @@ intPredErrDisc <- function (predErrObj, tmax=NULL) {
 #  else {
     # Help function
     predErrDiscTime <- function (t) {
-      predErrDiscShort (timepoints= t, estSurvList=EstSurvList, newTime=NewTime, newEvent=NewEvent, trainTime=TrainTime, trainEvent=TrainEvent)
+      predErrDiscShort (timepoints= t, estSurvList=EstSurvList, 
+                        newTime=NewTime, newEvent=NewEvent, 
+                        trainTime=TrainTime, trainEvent=TrainEvent)
     }
     
     # Estimate marginal probabilities P(T=t)
@@ -1323,24 +1367,26 @@ intPredErrDisc <- function (predErrObj, tmax=NULL) {
     TrainLongFull <- dataLong (dataSet=data.frame(TrainTime=TrainTime, TrainEvent=TrainEvent), timeColumn="TrainTime", censColumn="TrainEvent")
     MargFormula <- y ~ timeInt
     MargFit <- glm (formula=MargFormula, data=TrainLongFull, family=binomial(), control=glm.control(maxit=2500))
-    PredMargData <- data.frame(timeInt=factor(min(TrainTime):max(TrainTime)))
+    PredMargData <- data.frame(timeInt=factor(1:MaxTime))
     MargHaz <- as.numeric(predict(MargFit, PredMargData, type="response"))
     # Marginal Probability P(T=t) = \lambda (T=t) \prod_{j=1}^{t-1} (1-\lambda (T=j))
     MargProbs <- estMargProb(MargHaz)
     
     # Estimate prediction error curve over all time points
-    PredsErrorCurve <- predErrDiscTime (1:(MaxTime+1))$Output$predErr
-    IncludedIndices <- !(is.na(PredsErrorCurve) | is.nan (PredsErrorCurve) | is.infinite(PredsErrorCurve))
+    PredsErrorCurve <- predErrDiscTime (1:MaxTime)$Output$predErr
+    # IncludedIndices <- !(is.na(PredsErrorCurve) | is.nan (PredsErrorCurve) | is.infinite(PredsErrorCurve))
+    IncludedIndices <- is.finite(PredsErrorCurve) & is.finite(MargProbs)
     PredsErrorCurve <- PredsErrorCurve [IncludedIndices]
     MargProbs <- as.numeric(MargProbs [IncludedIndices])
     
-    # Enlarge PredsErrorCurve with 0 to match length of MargProbs
-    if(length(PredsErrorCurve)!=length(MargProbs)) {
-      PredsErrorCurve <- c(PredsErrorCurve, rep(0, length(MargProbs) - length(PredsErrorCurve)))
-    }
+    # # Enlarge PredsErrorCurve with 0 to match length of MargProbs
+    # if(length(PredsErrorCurve)!=length(MargProbs)) {
+    #   PredsErrorCurve <- c(PredsErrorCurve, rep(0, length(MargProbs) - length(PredsErrorCurve)))
+    # }
     
     # Output
-    Result <- sum(PredsErrorCurve [1:MaxTime] * MargProbs [1:MaxTime]) / sum(MargProbs [1:MaxTime])
+    # Result <- sum(PredsErrorCurve [1:MaxTime] * MargProbs [1:MaxTime]) / sum(MargProbs [1:MaxTime])
+    Result <- sum(PredsErrorCurve * MargProbs) / sum(MargProbs)
     return(c(IntPredErr=Result))
 #  }
 }
@@ -1570,4 +1616,52 @@ devResidShort <- function (dataSet, hazards) {
                  Input=list(dataSet=dataSet, hazards=hazards))
   class(Output) <- "discSurvDevResid"
   return(Output)
+}
+
+##################
+# Wrapper C-Index
+
+evalCindex <- function(marker, newTime, newEvent, trainTime, trainEvent){
+  tprFit <- tprUnoShort (timepoint = 1, marker, newTime,
+                         newEvent, trainTime, trainEvent)
+  fprFit <- fprUnoShort(timepoint = 1, marker, newTime)
+  aucFit <- aucUno(tprFit, fprFit)
+  CFit <- unname(concorIndex(aucFit)$Output)
+  return(CFit)
+}
+
+###########################################
+# Wrapper integrated prediction error curve
+
+# Evaluation function to compute integrated prediction error curves
+evalIntPredErr <- function(hazPreds, survPreds=NULL, newTimeInput, 
+                           newEventInput, trainTimeInput, trainEventInput, 
+                           testDataLong, tmax=NULL){
+  
+  if( any(is.null(survPreds)) ){
+    # Convert to 1-preds
+    oneMinusPredHaz <- 1 - hazPreds
+    
+    # Calculate survival curves of all observed time points of each person
+    predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=testDataLong, 
+                          FUN=cumprod, na.action=NULL)
+    
+    # Calculate prediction error curve value in first interval
+    pecObj <- predErrDiscShort(timepoints=1, estSurvList=predSurv[[2]], 
+                               newTime=newTimeInput, newEvent=newEventInput, 
+                               trainTime=trainTimeInput, trainEvent=trainEventInput)
+    
+    # Estimate integrated prediction error curves
+    ipecVal <- unname(intPredErrDisc(predErrObj=pecObj, tmax=tmax))
+    return(ipecVal)
+  } else{
+    # Calculate prediction error curve value in first interval
+    pecObj <- predErrDiscShort(timepoints=1, estSurvList=survPreds, 
+                               newTime=newTimeInput, newEvent=newEventInput, 
+                               trainTime=trainTimeInput, trainEvent=trainEventInput)
+    
+    # Estimate integrated prediction error curves
+    ipecVal <- unname(intPredErrDisc(predErrObj=pecObj, tmax=tmax))
+    return(ipecVal)
+  }
 }

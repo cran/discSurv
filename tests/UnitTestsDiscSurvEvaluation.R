@@ -217,7 +217,7 @@ summary(tryConcorIndex)
 # # Check
 # tryPredErrDisc1Short <- predErrDiscShort (timepoints=InsertTimePoints, estSurvList=InsertEstSurv, newTime=InsertNewTime, newEvent=InsertNewEvent, trainTime=InsertTrainTime, trainEvent=InsertTrainEvent)
 # stopifnot(all.equal(sum(abs(results - tryPredErrDisc1Short$Output$predErr)), 0))
-# 
+# # 
 # ######################################
 # # intPredErrDisc
 # 

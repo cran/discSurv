@@ -79,7 +79,7 @@ Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{aucUno}}, \code{\link[mgcv]{gam}}
+\code{\link{intPredErrDisc}}, \code{\link{aucUno}}, \code{\link[mgcv]{gam}}
 }
 \examples{
 # Example with cross validation and unemployment data 

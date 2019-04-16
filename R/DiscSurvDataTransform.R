@@ -616,3 +616,73 @@ dataLongSubDist <- function(dataSet, timeColumn, eventColumns,
   Output <- cbind(dataSetLong, subDistWeights=weights)
   return(Output)
 }
+
+#################################
+# Multi Spell data transformation
+
+dataLongMultiSpell <- function(dataSet, timeColumn, censColumn, idColumn,
+                               timeAsFactor=FALSE){
+  
+  # Expand responses
+  # Assumption: Reference level corresponds to censoring
+  if(!is.factor(dataSet[, censColumn])){
+    dataSet[, censColumn] <- factor(dataSet[, censColumn])
+  }
+  eventExpand <- model.matrix(~.-1, dataSet[, censColumn, drop=FALSE])
+  dimnames(eventExpand)[[2]] <- paste("e", 0:(dim(eventExpand)[2]-1), sep="")
+  dataSet <- cbind(obj=NA, timeInt=NA, eventExpand, dataSet)
+  
+  # Extract indices for IDs from time
+  splitDat <- split(dataSet, dataSet[, idColumn])
+  lenSplitDat <- length(splitDat)
+  
+  # Find discrete time intervals with time gaps between spells
+  for( j in 1:lenSplitDat ){
+    
+    # Calculate time differences
+    actualTime <- splitDat[[j]][, timeColumn]
+    diffTime <- diff( actualTime )
+    # Define standard indices
+    defIndices <- 1:length(actualTime)
+    if(actualTime[1] > 1){
+      defIndices <- c( defIndices, rep(1, actualTime[1]-1) )
+    }
+    
+    for( i in 1:length(diffTime) ){
+        if(length(diffTime) > 0){
+          if(diffTime[i] > 1){
+            defIndices <- c( defIndices, rep(i+1, diffTime[i]-1) )
+          }
+        }
+    }
+    # Enlarge data set
+    defIndices <- sort(defIndices)
+    splitDat[[j]] <- splitDat[[j]][defIndices, ]
+    splitDat[[j]][, "obj"] <- j
+    splitDat[[j]][, "timeInt"] <- 1:dim(splitDat[[j]])[1]
+    
+    # Adapt responses
+    for( k in 1:length(actualTime) ){
+      
+      if(length(splitDat[[j]][defIndices==k, "e0"]) > 1){
+        relInd <- which(defIndices==k)
+        relInd <- relInd[-length(relInd)]
+        splitDat[[j]][relInd, "e0"] <- 1
+        splitDat[[j]][relInd, paste("e", 
+                                    1:(dim(eventExpand)[2]-1), sep="")] <- 0
+      }
+      
+    }
+    
+  }
+  
+  # Return full data set
+  allDat <- as.data.frame(rbindlist(splitDat))
+  
+  # Should time be formatted as factor?
+  if(timeAsFactor){
+    allDat$timeInt <- factor(allDat$timeInt)
+  }
+  
+  return(allDat)
+}

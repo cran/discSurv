@@ -78,7 +78,8 @@ CostMonthsLong <- dataLong (dataSet=CostMonths, timeColumn="timeDisc", censColum
 head(CostMonthsLong, 20)
 
 # Generate censoring process variable
-CostMonthsCensor <- dataCensoring (dataSetLong=CostMonthsLong, respColumn="y", timeColumn="obj")
+CostMonthsCensor <- dataCensoring (dataSetLong=CostMonthsLong, 
+respColumn="y", timeColumn="timeInt")
 head(CostMonthsCensor)
 tail(CostMonthsCensor [CostMonthsCensor$obj==1, ], 10)
 tail(CostMonthsCensor [CostMonthsCensor$obj==3, ], 10)
