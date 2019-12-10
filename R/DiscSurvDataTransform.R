@@ -578,44 +578,53 @@ dataCensoringShort <- function(dataSet, eventColumns, timeColumn){
 # dataLongSubdist
 
 dataLongSubDist <- function(dataSet, timeColumn, eventColumns, 
-                            eventFocus, timeAsFactor=TRUE) {
+                             eventFocus, timeAsFactor=TRUE) {
   #######################
   # Construct long format
-
+  
+  # Reorder event columns
+  # First column correspond to the event of focus
+  eventColumns <- c(eventColumns[eventColumns==eventFocus], 
+                    eventColumns[eventColumns!=eventFocus])
+  
   # Construct object counter
   dataSet_timeColumn <- as.numeric(as.character(dataSet[, timeColumn]))
   tmax <- max(dataSet_timeColumn)
-  dataSet_timeColumn <- ifelse(rowSums(dataSet[, eventColumns])==1 & 
-                                 dataSet[, eventFocus] ==0, tmax, 
+  delta_i <- rowSums(dataSet[, eventColumns])==1
+  epsilon_i <- sapply(1:dim(dataSet)[1], 
+                      function(x) ifelse(delta_i[x], 
+                                         which(dataSet[x, eventColumns]==1), 0))
+  dataSet_timeColumn <- ifelse(delta_i & 
+                                 dataSet[, eventFocus] == 0, tmax, 
                                dataSet_timeColumn)
-  obj <- rep(1:nrow(dataSet), dataSet_timeColumn)
-
+  obj <- rep(1:nrow(dataSet), each=tmax)
+  
   # Construct time intervals
-  timeInt <- unlist(sapply(1:length(dataSet_timeColumn), 
-                    function(k) 1:dataSet_timeColumn[k]))
-
+  timeInt <- c(sapply(1:length(dataSet_timeColumn), 
+                      function(k) 1:tmax))
+  
   # Construct response for event of interest
   eventFocus <- dataSet[, eventFocus]
-  y <- unlist(sapply(1:length(dataSet_timeColumn), 
-              function(k) c(rep(0, dataSet_timeColumn[k]-1), eventFocus[k]) ))
-
+  y <- c(sapply(1:length(dataSet_timeColumn), 
+                function(k) c(rep(0, dataSet_timeColumn[k]-1), 
+                              eventFocus[k], 
+                              rep(0, tmax-dataSet_timeColumn[k]) ) ))
+  
   # Estimation of weights
   estG <- estSurvCens(dataSet=dataSet, timeColumn=timeColumn, 
                       eventColumns=eventColumns)
   weights <- estG[timeInt] / 
-    estG[pmin(dataSet[obj, timeColumn], timeInt)]
+    estG[pmin(dataSet[obj, timeColumn], timeInt)] *
+    (ifelse(timeInt <= dataSet[obj, timeColumn], 1, 0) + 
+       ifelse(dataSet[obj, timeColumn] <= (timeInt-1) &
+                delta_i[obj] * epsilon_i[obj] > 1, 1, 0) )
   
   # Combine results
   if(timeAsFactor){timeInt <- factor(timeInt)}
   dataSetLong <- cbind(obj=obj, timeInt=timeInt, y=y, dataSet[obj, ])
-  
-  # Remove cases with not available weights
-  remIndices <- is.na(weights)
-  weights <- weights[!remIndices]
-  dataSetLong <- dataSetLong[!remIndices, ]
   Output <- cbind(dataSetLong, subDistWeights=weights)
   return(Output)
-}
+} 
 
 #################################
 # Multi Spell data transformation

@@ -20,7 +20,7 @@ Original data in short format. Must be of class "data.frame".
 Character specifying the column name of the observed event times. It is required that the observed times are discrete (integer).
 }
   \item{eventColumns}{
-Character vector specifying the column names of the event indicators (excluding censoring events). It is required that a 0-1 coding is used for all events. If the sum of the event indicators is zero this will be interpreted as a censoring event. 
+Character vector specifying the column names of the event indicators (excluding censoring events). It is required that a 0-1 coding is used for all events. The algorithm treats row sums of zero of all event columns as censored. 
 }
   \item{eventFocus}{
 Column name of the event of interest (type 1 event).
@@ -36,9 +36,9 @@ This function sets up the augmented data matrix and the weights that are needed 
 Data frame with additional column "subDistWeights". The latter column contains the weights that are needed for fitting a weighted binary regression model, as described in Berger et al. (2018). The weights are calculated by a life table estimator for the censoring event.
 }
 \references{
-Moritz Berger, Matthias Schmid, Thomas Welchowski, Steffen Schmitz-Valckenberg and Jan Beyersmann (2018). \emph{Subdistribution Hazard Models for Competing Risks in Discrete Time}. Submitted manuscript.
+Moritz Berger, Matthias Schmid, Thomas Welchowski, Steffen Schmitz-Valckenberg and Jan Beyersmann, (2018), \emph{Subdistribution Hazard Models for Competing Risks in Discrete Time}, Biostatistics, Doi: 10.1093/biostatistics/kxy069
 
-Jason P. Fine and Robert J. Gray (1999). \emph{A proportional hazards model for the subdistribution of a competing risk}. Journal of the American Statistical Association 94, pp. 496-509.
+Jason P. Fine and Robert J. Gray, (1999), \emph{A proportional hazards model for the subdistribution of a competing risk}, Journal of the American Statistical Association 94, pages 496-509.
 }
 \author{
 Thomas Welchowski \email{welchow@imbie.meb.uni-bonn.de}

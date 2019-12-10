@@ -21,8 +21,8 @@ Includes functions for data transformations, estimation, evaluation and simulati
 \tabular{ll}{
 Package: \tab discSurv \cr
 Type: \tab Package \cr
-Version: \tab 1.4.0 \cr
-Date: \tab 2019-04-16 \cr
+Version: \tab 1.4.1 \cr
+Date: \tab 2019-12-10 \cr
 License: \tab GPL-3 \cr
 }
 %%~~ An overview of how to use the package, including the most important functions ~~
@@ -34,6 +34,10 @@ Matthias Schmid \email{matthias.schmid@imbie.uni-bonn.de}
 }
 \references{
 \strong{Main references}:
+
+Moritz Berger, Thomas Welchowski, Steffen Schmitz-Valckenberg and Matthias Schmid, (2019), \emph{A classification tree approach for the modeling of competing risks in discrete time}, Advances in Data Analysis and Classification, vol. 13, issue 4, pages 965-990
+
+Moritz Berger, Matthias Schmid, Thomas Welchowski, Steffen Schmitz-Valckenberg and Jan Beyersmann, (2018), \emph{Subdistribution Hazard Models for Competing Risks in Discrete Time}, Biostatistics, Doi: 10.1093/biostatistics/kxy069
 
 Matthias Schmid, Gerhard Tutz and Thomas Welchowski, (2017), 
 \emph{Discrimination Measures for Discrete Time-to-Event Predictions}, Econometrics and Statistics, Elsevier, Doi: 10.1016/j.ecosta.2017.03.008

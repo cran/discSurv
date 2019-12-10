@@ -223,14 +223,21 @@ stopifnot(all(evalGridCensShort$yCens==trueYcens))
 TestData4LongSubDist <- dataLongSubDist(dataSet=TestData4, 
                  timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"), 
                  eventFocus="E1", timeAsFactor=FALSE)
-TestData4LongSubDist
+head(TestData4LongSubDist)
 
 # Checks
 
 #######################
 # Event Focus at time T
-stopifnot(length(TestData4LongSubDist[TestData4LongSubDist$E1==1, "y"])==
-            sum(TestData4[TestData4$E1==1, "obsTime"]))
+
+# Check dimension of augmented data
+stopifnot(nrow(TestData4LongSubDist)==
+            (max(TestData4[, "obsTime"])*nrow(TestData4)))
+
+# Check number of primary events
+stopifnot(sum(TestData4LongSubDist[TestData4LongSubDist$E1==1, "y"])==
+            sum(TestData4[, "E1"]==1))
+
 # Example: First observation (short format)
 theoryTime <- 1:TestData4[1, "obsTime"]
 theoryY <- c(rep(0, TestData4[1, "obsTime"]-1), 1)
@@ -246,44 +253,48 @@ stopifnot(length(TestData4LongSubDist[rowSums(TestData4LongSubDist[,
             c("E1", "E2", "E3")])==1 & TestData4LongSubDist$E1==0, "y"])==
             sum(rep(max(TestData4[, "obsTime"]), sum(rowSums(TestData4[, 
             c("E1", "E2", "E3")])==1 & TestData4$E1==0))))
+
 # Example: Second observation (short format)
 theoryTime <- 1:max(TestData4[, "obsTime"])
 theoryY <- rep(0, max(TestData4[, "obsTime"]))
-Indices <- (TestData4[1, "obsTime"]+1):
-  (TestData4[1, "obsTime"]+max(TestData4[, "obsTime"]))
+Indices <- (max(TestData4[, "obsTime"])+1):
+  (max(TestData4[, "obsTime"])*2)
 stopifnot(all(TestData4LongSubDist[Indices, "timeInt"]==theoryTime))
 stopifnot(all(TestData4LongSubDist[Indices, "y"]==theoryY))
+
 # Check case specific weights
+# First observation
 # Up to T
-IndicesT <- (TestData4[1, "obsTime"]+1):
-  (TestData4[1, "obsTime"]+TestData4[2, "obsTime"])
+IndicesT <- 1:max(TestData4[, "obsTime"])
 stopifnot(all.equal(TestData4LongSubDist[IndicesT, "subDistWeights"], 
-                    rep(1, length(TestData4LongSubDist[IndicesT, "subDistWeights"]))))
+                    c( rep(1, 7), rep(0, 12-7) ) ))
+
 # After T up to t_max
-IndicesAfterT <- (TestData4[1, "obsTime"]+TestData4[2, "obsTime"]+1):
-  (TestData4[1, "obsTime"]+max(TestData4[, "obsTime"]))
+# Observation two
+IndicesAfterT <- (max(TestData4[, "obsTime"])+1):(max(TestData4[, "obsTime"])*2)
 # Estimate censoring survival function
 estG <- estSurvCens(dataSet=TestData4, timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"))
-trueWeights <- unname(estG[IndicesAfterT-TestData4[1, "obsTime"] ] / estG[ TestData4[2, "obsTime"] ])
+trueWeights <- unname(estG[ 1:12 ] / estG[ pmin(7, 1:12) ])
 stopifnot(all.equal(TestData4LongSubDist[IndicesAfterT, "subDistWeights"], 
                     trueWeights))
 
 ################################
 # Censored observation at time C
 
-stopifnot(length(TestData4LongSubDist[rowSums(TestData4LongSubDist[, 
-            c("E1", "E2", "E3")])==0, "y"])==
-            sum(TestData4[rowSums(TestData4[, c("E1", "E2", "E3")])==0, "obsTime"]))
+stopifnot(sum(TestData4LongSubDist[rowSums(TestData4LongSubDist[, 
+            c("E1", "E2", "E3")])==0, "y"])==0)
+
 # Example: Third observation (short format)
-theoryTime <- 1:TestData4[3, "obsTime"]
-theoryY <- rep(0, TestData4[3, "obsTime"])
-Indices <- (TestData4[1, "obsTime"]+max(TestData4[, "obsTime"])+1):
-  (TestData4[1, "obsTime"]+max(TestData4[, "obsTime"])+TestData4[3, "obsTime"])
+theoryTime <- 1:max(TestData4[, "obsTime"])
+theoryY <- rep(0, max(TestData4[, "obsTime"]) )
+Indices <- (max(TestData4[, "obsTime"])*2+1):(max(TestData4[, "obsTime"])*3)
 stopifnot(all(TestData4LongSubDist[Indices, "timeInt"]==theoryTime))
 stopifnot(all(TestData4LongSubDist[Indices, "y"]==theoryY))
 # Check case specific weights
 stopifnot(all.equal(TestData4LongSubDist[Indices, "subDistWeights"], 
-                    rep(1, length(TestData4LongSubDist[Indices, "subDistWeights"]))))
+                    c( rep(1, max(TestData4[3, "obsTime"])), 
+                       rep(0, max(TestData4[, "obsTime"])-
+                             max(TestData4[3, "obsTime"])) )))
 
 ####################################
 # Time dependent competing risks
