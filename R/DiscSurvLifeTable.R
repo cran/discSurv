@@ -38,8 +38,8 @@ lifeTable <- function (dataSet, timeColumn, censColumn, intervalBorders=NULL) {
   atRiskInitial <- dim(dataSet) [1]
   dataSet <- dataSet [order(dataSet [, timeColumn]), ]
   formulaInput <- as.formula(paste(censColumn, timeColumn, sep="~"))
-  events <- aggregate(formula=formulaInput, data=dataSet, FUN=function (x) sum(x)) [, 2]
-  dropouts <- aggregate(formula=formulaInput, data=dataSet, FUN=function (x) sum(1-x)) [, 2]
+  events <- aggregate(formulaInput, data=dataSet, FUN=function (x) sum(x)) [, 2]
+  dropouts <- aggregate(formulaInput, data=dataSet, FUN=function (x) sum(1-x)) [, 2]
   atRiskInput <- c(atRiskInitial, atRiskInitial-cumsum(events+dropouts))
   atRiskInput <- atRiskInput [-length(atRiskInput)]
   times <- as.numeric(names(table(as.numeric(as.character(dataSet [, timeColumn])))))

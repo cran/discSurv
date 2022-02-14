@@ -1643,7 +1643,7 @@ evalIntPredErr <- function(hazPreds, survPreds=NULL, newTimeInput,
     oneMinusPredHaz <- 1 - hazPreds
     
     # Calculate survival curves of all observed time points of each person
-    predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=testDataLong, 
+    predSurv <- aggregate(oneMinusPredHaz ~ obj, data=testDataLong, 
                           FUN=cumprod, na.action=NULL)
     
     # Calculate prediction error curve value in first interval

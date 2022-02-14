@@ -52,7 +52,7 @@ Original data set in long format with additional columns
 }
 \references{
 Ludwig Fahrmeir, (1997), \emph{Discrete failure time models},
-LMU Sonderforschungsbereich 386, Paper 91, \url{http://epub.ub.uni-muenchen.de/}
+LMU Sonderforschungsbereich 386, Paper 91, \url{https://epub.ub.uni-muenchen.de/}
 
 W. A. Thompson Jr., (1977), 
 \emph{On the Treatment of Grouped Observations in Life Studies},

@@ -32,7 +32,7 @@ Original data set as argument *dataSet*, but with added censoring process as fir
 Gerhard Tutz and Matthias Schmid, (2016), \emph{Modeling discrete time-to-event data}, Springer series in statistics, Doi: 10.1007/978-3-319-28158-2
 
 Ludwig Fahrmeir, (1997), \emph{Discrete failure time models},
-LMU Sonderforschungsbereich 386, Paper 91, \url{http://epub.ub.uni-muenchen.de/}
+LMU Sonderforschungsbereich 386, Paper 91, \url{https://epub.ub.uni-muenchen.de/}
 
 W. A. Thompson Jr., (1977), 
 \emph{On the Treatment of Grouped Observations in Life Studies},

@@ -115,7 +115,7 @@ gamFit <- gam (formula=y ~ s(timeInt) + age + logwage, data=LongTrain, family=bi
 
 # Estimate survival function of each person in the test data
 oneMinusPredHaz <- 1 - predict(gamFit, newdata=LongTest, type="response")
-predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
+predSurv <- aggregate(oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
 
 # Prediction error in first interval
 tryPredErrDisc1 <- predErrDiscShort (timepoints=1, 
@@ -143,7 +143,7 @@ rfFit <- randomForest (formula=y ~ timeInt + age + logwage, data=LongTrainRF)
 
 # Estimate survival function of each person in the test data
 oneMinusPredHaz <- 1 - predict(rfFit, newdata=LongTest, type="prob") [, 2]
-predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
+predSurv <- aggregate(oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
 
 # Prediction error in first interval
 tryPredErrDisc1 <- predErrDiscShort (timepoints=1, 

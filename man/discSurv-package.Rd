@@ -21,8 +21,8 @@ Includes functions for data transformations, estimation, evaluation and simulati
 \tabular{ll}{
 Package: \tab discSurv \cr
 Type: \tab Package \cr
-Version: \tab 1.4.1 \cr
-Date: \tab 2019-12-10 \cr
+Version: \tab 1.4.2 \cr
+Date: \tab 2022-02-14 \cr
 License: \tab GPL-3 \cr
 }
 %%~~ An overview of how to use the package, including the most important functions ~~
@@ -75,7 +75,7 @@ Wiley series in probability and statistics
 Jason P. Fine and Robert J. Gray, (1999), \emph{A proportional hazards model for the subdistribution of a competing risk}, Journal of the American statistical association, Vol. 94, No. 446, pages 496-509
 
 Ludwig Fahrmeir, (1997), \emph{Discrete failure time models},
-LMU Sonderforschungsbereich 386, Paper 91, \url{http://epub.ub.uni-muenchen.de/}
+LMU Sonderforschungsbereich 386, Paper 91, \url{https://epub.ub.uni-muenchen.de/}
 
 Tilmann Gneiting and Adrian E. Raftery, (2007),
 \emph{Strictly proper scoring rules, prediction, and

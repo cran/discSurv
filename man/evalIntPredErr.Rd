@@ -121,7 +121,7 @@ testDataLong=LongTest)
 
 # 2. Alternative specification
 oneMinusPredHaz <- 1-testPredHaz
-predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod, na.action=NULL)
+predSurv <- aggregate(oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod, na.action=NULL)
 
 # 2.1. Calculate integrated prediction error
 evalIntPredErr(survPreds=predSurv[[2]], 

@@ -86,7 +86,7 @@ gamFit <- gam (formula=y ~ s(timeInt) + age + logwage, data=LongTrain, family=bi
 
 # Estimate survival function of each person in the test data
 oneMinusPredHaz <- 1 - predict(gamFit, newdata=LongTest, type="response")
-predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
+predSurv <- aggregate(oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
 
 # Prediction error in first and second interval
 tryPredErrDisc1 <- predErrDiscShort (timepoints=1, 
@@ -140,7 +140,7 @@ summary(gamFit)
 
 # Estimate survival function of each person in the test data
 oneMinusPredHaz <- 1 - predict(gamFit, newdata=LongTest, type="response")
-predSurv <- aggregate(formula=oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
+predSurv <- aggregate(oneMinusPredHaz ~ obj, data=LongTest, FUN=cumprod)
 
 # One survival curve is missing: Replace the missing values,
 # with average value of other survival curves
