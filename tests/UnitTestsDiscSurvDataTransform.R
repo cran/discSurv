@@ -11,7 +11,7 @@ set.seed(123)
 randBin1 <- rbinom(n=100, size=1, prob=0.75)
 TestData1 <- data.frame(obsTime=randWeibull1, X1=randNorm1, X2=randBin1)
 IntBorders <- seq(ceiling(min(randWeibull1)), ceiling(max(randWeibull1)), length.out=10)
-TryTest1 <- contToDisc (dataSet=TestData1, timeColumn="obsTime", intervalLimits=IntBorders)
+TryTest1 <- contToDisc(dataShort=TestData1, timeColumn="obsTime", intervalLimits=IntBorders)
 # Check length and rest of data
 stopifnot(all.equal (TryTest1 [,-1], TestData1))
 stopifnot(length(TryTest1 [, 1])==length(randWeibull1)) 
@@ -30,21 +30,21 @@ randMultinom2 <- apply(rmultinom(n=100, size=1, prob=rep(1/12,12)), 2, function 
 set.seed(5678)
 randBin2 <- rbinom(n=100, size=1, prob=0.75)
 TestData2 <- data.frame(obsTime=randMultinom2, delta=randBin2)
-TryTest2 <- dataLong (dataSet=TestData2, timeColumn="obsTime", censColumn="delta")
+TryTest2 <- dataLong(dataShort=TestData2, timeColumn="obsTime", eventColumn="delta")
 # Check if sum of time variable equals length of data.frame
 stopifnot(sum(TestData2$obsTime)==dim(TryTest2) [1])
 # Check if for each person there is only one event
 
 # Remove last interval
 shortFormat <- data.frame(event=rep(c(0, 1), 6), time=rep(1:6, 2))
-shortFormatLong <- dataLong (dataSet=shortFormat, timeColumn="time", 
-                             censColumn="event", remLastInt=TRUE)
+shortFormatLong <- dataLong(dataShort=shortFormat, timeColumn="time", 
+                             eventColumn="event", remLastInt=TRUE)
 # Check number of rows of long format after last interval removal
 stopifnot(nrow(shortFormatLong)==(sum(rep(1:6, 2))-2))
 
 # Preparation for risk score integration over time
-shortFormatLong <- dataLong (dataSet=shortFormat, timeColumn="time", 
-                             censColumn="event", aggTimeFormat=TRUE,
+shortFormatLong <- dataLong(dataShort=shortFormat, timeColumn="time", 
+                             eventColumn="event", aggTimeFormat=TRUE,
                              lastTheoInt=6)
 stopifnot(nrow(shortFormatLong)==sum(rep(6, 12)) )
 
@@ -79,7 +79,7 @@ set.seed(400)
 Covariates <- rmvnorm (n=dim(TestData3) [1], mean=rep(0, 5))
 TestData3 <- cbind(TestData3, Covariates)
 names(TestData3) [4:length(names(TestData3))] <- paste("X", 1:5, sep="")
-TryTest3 <- dataLongTimeDep (dataSet=TestData3, timeColumn="obsTime", censColumn="Event", idColumn="ID")
+TryTest3 <- dataLongTimeDep(dataSemiLong=TestData3, timeColumn="obsTime", eventColumn="Event", idColumn="ID")
 head(TestData3, 20)
 head(TryTest3, 20)
 
@@ -144,7 +144,7 @@ names(TestData4) [2:length(names(TestData4))] <- c("E1", "E2", "E3", paste("X", 
 set.seed(-234)
 sampleCens <- sample(1:100, size=10)
 TestData4[sampleCens, paste("E", 1:3, sep="")] <- 0
-TryTest4 <- dataLongCompRisks (dataSet=TestData4, timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"))
+TryTest4 <- dataLongCompRisks(dataShort=TestData4, timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"))
 head(TryTest4, 20)
 
 # Additional checks
@@ -185,8 +185,7 @@ CheckFunction5 <- function (x) {
   return(Check1)
 }
 
-TryTest5 <- dataCensoring (dataSetLong=TryTest2, respColumn="y", 
-                           timeColumn="timeInt")
+TryTest5 <- dataCensoring(dataShort=TryTest2, timeColumn="timeInt", shortFormat=FALSE)
 head(TryTest5, 20)
 SplitTryTest5 <- split(TryTest5, TryTest5$obj)
 
@@ -196,7 +195,7 @@ stopifnot(all(sapply(SplitTryTest5, CheckFunction5)))
 #########################
 # dataCensoringShort
 
-TryTestShort <- dataCensoringShort (dataSet=TestData2, eventColumns="delta", 
+TryTestShort <- dataCensoring(dataShort=TestData2, eventColumns="delta", 
                                     timeColumn="obsTime")
 yCensTrue <- ifelse(TestData2$delta==0, 1, 0)
 remIndices <- yCensTrue==0 & TestData2$obsTime==1
@@ -209,7 +208,7 @@ stopifnot(all.equal(TryTestShort$yCens, yCensTrue))
 
 evalGrid <- expand.grid(e1=c(0, 1), e2=c(0, 1), timeInt=1:3)
 evalGrid <- evalGrid[!(rowSums(evalGrid[, paste("e", 1:2, sep="")])==2), ]
-evalGridCensShort <- dataCensoringShort (dataSet=evalGrid, 
+evalGridCensShort <- dataCensoring(dataShort=evalGrid, 
                                          eventColumns=paste("e", 1:2, sep=""),
                                          timeColumn="timeInt")
 trueYcens <- ifelse(rowSums(evalGrid[, c("e1", "e2")])==0, 1, 0)
@@ -220,7 +219,7 @@ stopifnot(all(evalGridCensShort$yCens==trueYcens))
 ######################
 # dataLongSubDistr
 
-TestData4LongSubDist <- dataLongSubDist(dataSet=TestData4, 
+TestData4LongSubDist <- dataLongSubDist(dataShort=TestData4, 
                  timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"), 
                  eventFocus="E1", timeAsFactor=FALSE)
 head(TestData4LongSubDist)
@@ -273,7 +272,7 @@ stopifnot(all.equal(TestData4LongSubDist[IndicesT, "subDistWeights"],
 # Observation two
 IndicesAfterT <- (max(TestData4[, "obsTime"])+1):(max(TestData4[, "obsTime"])*2)
 # Estimate censoring survival function
-estG <- estSurvCens(dataSet=TestData4, timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"))
+estG <- estSurvCens(dataShort=TestData4, timeColumn="obsTime", eventColumns=c("E1", "E2", "E3"))
 trueWeights <- unname(estG[ 1:12 ] / estG[ pmin(7, 1:12) ])
 stopifnot(all.equal(TestData4LongSubDist[IndicesAfterT, "subDistWeights"], 
                     trueWeights))
@@ -311,14 +310,14 @@ names(pbcseqTemp) [7] <- "month"
 pbcseqTemp$status <- factor(pbcseqTemp$status)
 
 # Convert to long format for time varying effects
-pbcseqTempLong <- dataLongCompRisksTimeDep(dataSet=pbcseqTemp, timeColumn="month", 
+pbcseqTempLong <- dataLongCompRisksTimeDep(dataSemiLong=pbcseqTemp, timeColumn="month", 
                                        eventColumns="status", eventColumnsAsFactor=TRUE, idColumn="id", 
                                        timeAsFactor=TRUE)
 
 # Convert to long format for time varying effects
 respMat <- model.matrix(~status, pbcseqTemp)[, -1]
 pbcseqTemp2 <- cbind(pbcseqTemp, respMat)
-pbcseqTempLong2 <- dataLongCompRisksTimeDep(dataSet=pbcseqTemp2, timeColumn="month", 
+pbcseqTempLong2 <- dataLongCompRisksTimeDep(dataSemiLong=pbcseqTemp2, timeColumn="month", 
                                            eventColumns=c("status1", "status2"), 
                                            eventColumnsAsFactor=FALSE, 
                                            idColumn="id", timeAsFactor=TRUE)

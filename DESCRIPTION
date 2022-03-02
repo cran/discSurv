@@ -1,18 +1,23 @@
 Package: discSurv
-Version: 1.4.2
+Version: 2.0.0
 Title: Discrete Time Survival Analysis
-Date: 2022-02-14
-Author: Thomas Welchowski <welchow@imbie.meb.uni-bonn.de> and Matthias Schmid <matthias.schmid@imbie.uni-bonn.de>
+Date: 2022-03-02
+Author: Thomas Welchowski <welchow@imbie.meb.uni-bonn.de> and Moritz Berger <moritz.berger@imbie.uni-bonn.de> and David Koehler <koehler@imbie.uni-bonn.de> and Matthias Schmid <matthias.schmid@imbie.uni-bonn.de> 
 Maintainer: Thomas Welchowski <welchow@imbie.meb.uni-bonn.de>
 Description: Provides data transformations, estimation utilities,
     predictive evaluation measures and simulation functions for discrete time
     survival analysis.
-Imports: functional, mvtnorm, mgcv, data.table
+Depends: R (>= 3.5.0), treeClust
+Imports: functional, mvtnorm, mgcv, data.table, Rdpack, VGAM, geepack,
+        rpart, ranger, mvnfast
+RdMacros: Rdpack
 Suggests: Matrix, matrixcalc, numDeriv, caret, Ecdat, pec, survival,
-        randomForest, nnet, VGAM
+        nnet
+Encoding: UTF-8
 License: GPL-3
 LazyLoad: yes
+RoxygenNote: 7.1.2
 NeedsCompilation: no
-Packaged: 2022-02-14 14:40:10 UTC; peter
+Packaged: 2022-03-02 14:19:28 UTC; welchow
 Repository: CRAN
-Date/Publication: 2022-02-14 15:00:02 UTC
+Date/Publication: 2022-03-02 15:40:02 UTC

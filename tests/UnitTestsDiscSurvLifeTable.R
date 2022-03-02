@@ -13,15 +13,15 @@ EventInput <- c(rep(1, 10), rep(0, 10),
                 rep(1, 6), rep(0, 6),
                 rep(1, 2), rep(0, 3))
 genData <- data.frame(Time=TimeInput, Event=EventInput)
-LifeTab <- lifeTable (dataSet=genData, timeColumn="Time", censColumn="Event")
+LifeTab <- lifeTable(dataShort=genData, timeColumn="Time", eventColumn="Event")
 LifeTab
 
 # Checks
 MaxTimeSeq <- 1:max(genData [, "Time"])+1
-intervalBordersInput <- paste("[", c(0, MaxTimeSeq [-length(MaxTimeSeq)]), ", ", MaxTimeSeq, ")", sep = "")
-LifeTab2 <- lifeTable (dataSet=genData, timeColumn="Time", censColumn="Event", intervalBorders=intervalBordersInput)
+intervalLimitsInput <- paste("[", c(0, MaxTimeSeq [-length(MaxTimeSeq)]), ", ", MaxTimeSeq, ")", sep = "")
+LifeTab2 <- lifeTable(dataShort=genData, timeColumn="Time", eventColumn="Event", intervalLimits=intervalLimitsInput)
 LifeTab2
-stopifnot(all(rownames(LifeTab2)==intervalBordersInput [-length(intervalBordersInput)]))
+stopifnot(all(rownames(LifeTab2)==intervalLimitsInput [-length(intervalLimitsInput)]))
 
 # Additional checks
 stopifnot(LifeTab$Output [1, 1]==dim(genData) [1])
